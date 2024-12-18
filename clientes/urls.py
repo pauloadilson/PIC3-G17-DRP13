@@ -6,6 +6,7 @@ from clientes.views import (
     AtendimentoDetailView,
     AtendimentoUpdateView,
     AtendimentosListView,
+    DashboardView,
     IndexView,
     ClientesListView,
     ClienteCreateView,
@@ -77,4 +78,5 @@ urlpatterns = [
                 path("<str:cpf>/<int:pk>/excluir", AtendimentoDeleteView.as_view(), name="excluir_atendimento"),
     ])),
     path("prazos", PrazoView.as_view(), name="prazos"),
+    path("dashboard", DashboardView.as_view(), name="dashboard"),
 ]

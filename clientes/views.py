@@ -41,7 +41,12 @@ from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404, redirect
 from itertools import chain
 from django.utils import timezone
-# Create your views here.
+
+from django.db.models.functions import ExtractYear, ExtractMonth
+from django.db.models import Count
+import plotly.express as px
+
+
 class IndexView(TemplateView):
     template_name = "index.html"
     title = "Página inicial"
@@ -926,3 +931,38 @@ class AtendimentoDeleteView(DeleteView):
 
     def get_success_url(self):
         return reverse_lazy("atendimentos")
+
+@method_decorator(login_required(login_url="login"), name="dispatch")
+class DashboardView(TemplateView):
+    template_name = "dashboard.html"
+    title = "Painel de Análise"
+
+    def get_context_data(self, **kwargs) -> dict[str, any]:
+        context = super(DashboardView, self).get_context_data(**kwargs)
+        
+        ano_atual = datetime.now().year
+
+        # Gráfico de número de requerimentos abertos no ano
+        requerimentos_por_mes = Requerimento.objects.filter(is_deleted=False).filter(data__year=ano_atual).annotate(mes=ExtractMonth('data')).values('mes').annotate(total=Count('id')).order_by('mes')
+        meses = [r['mes'] for r in requerimentos_por_mes]
+        totais_meses = [r['total'] for r in requerimentos_por_mes]
+        
+        fig = px.bar(x=meses, y=totais_meses, labels={'x': 'Mês', 'y': 'Número de Requerimentos'}, title=f'Número de Requerimentos Abertos em {ano_atual}')
+        fig.update_xaxes(tickvals=meses)
+        fig.update_layout(width=500, height=400)
+        chart = fig.to_html()
+        context['grafico1'] = chart
+        
+        # Gráfico de número de atendimentos realizados no ano
+        requerimentos_por_ano = Requerimento.objects.filter(is_deleted=False).annotate(ano=ExtractYear('data')).values('ano').annotate(total=Count('id')).order_by('ano')
+        anos = [r['ano'] for r in requerimentos_por_ano]
+        totais_anos = [r['total'] for r in requerimentos_por_ano]
+        
+        fig = px.bar(x=anos, y=totais_anos, labels={'x': 'Ano', 'y': 'Número de Requerimentos por ano'}, title='Número de Requerimentos Abertos por Ano')
+        fig.update_xaxes(tickvals=anos)
+        fig.update_layout(width=500, height=400)
+        chart2 = fig.to_html()
+        context['grafico2'] = chart2
+
+        context["title"] = self.title
+        return context
