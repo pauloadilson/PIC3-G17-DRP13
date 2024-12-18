@@ -6,6 +6,8 @@ from clientes.views import (
     AtendimentoDetailView,
     AtendimentoUpdateView,
     AtendimentosListView,
+    ClienteCreateListAPIView,
+    ClienteRetrieveUpdateDestroyAPIView,
     IndexView,
     ClientesListView,
     ClienteCreateView,
@@ -41,6 +43,10 @@ urlpatterns = [
         path('<str:cpf>', ClienteDetailView.as_view(), name='cliente'),
         path('<str:cpf>/atualizar', ClienteUpdateView.as_view(), name='atualizar_cliente'),
         path('<str:cpf>/excluir', ClienteDeleteView.as_view(), name='excluir_cliente'),
+    ])),
+    path('api/v1/clientes/', include ([
+            path("", ClienteCreateListAPIView.as_view(), name='cliente-create-list'),
+            path("<str:cpf>", ClienteRetrieveUpdateDestroyAPIView.as_view(), name='cliente-detail-update-delete'),
     ])),
     path('escolher-requerimento/<str:cpf>', EscolherTipoRequerimentoView.as_view(), name='escolher_tipo_requerimento'),
     path("requerimento_inicial/<str:cpf>/", include ([

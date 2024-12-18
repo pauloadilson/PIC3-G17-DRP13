@@ -1,6 +1,10 @@
 from datetime import datetime
 from django.http import Http404
 from django.db.models.base import Model as Model
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView
+from rest_framework.exceptions import NotFound
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from django.views.generic import (
     TemplateView,
     ListView,
@@ -41,6 +45,9 @@ from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404, redirect
 from itertools import chain
 from django.utils import timezone
+
+from clientes.serializers import AtendimentoSerializer, ClienteSerializer, RequerimentoInicialSerializer, RequerimentoRecursoSerializer, RequerimentoSerializer
+
 # Create your views here.
 class IndexView(TemplateView):
     template_name = "index.html"
@@ -95,6 +102,66 @@ class ClienteCreateView(CreateView):
     def get_success_url(self):
         return reverse_lazy("cliente", kwargs={"cpf": self.object.cpf})
 
+class ClienteCreateListAPIView(ListCreateAPIView):
+    queryset = Cliente.objects.all()
+    serializer_class = ClienteSerializer
+
+    def get_queryset(self):
+        return Cliente.objects.filter(is_deleted=False)
+    
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+class ClienteRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    queryset = Cliente.objects.all()
+    serializer_class = ClienteSerializer
+
+    def get_object(self):
+        return get_object_or_404(Cliente, cpf=self.kwargs['cpf'])
+
+    def get(self, request, cpf, format=None):
+        cliente = get_object_or_404(Cliente, cpf=cpf)
+        if cliente.is_deleted:
+            raise NotFound("Cliente não encontrado")
+
+        requerimentos_cliente = RequerimentoInicial.objects.filter(
+            is_deleted=False,
+            requerente_titular__cpf__icontains=cpf
+        )
+        
+        recursos_cliente = RequerimentoRecurso.objects.filter(
+            is_deleted=False,
+            requerente_titular__cpf__icontains=cpf
+        )
+        atendimentos_cliente = Atendimento.objects.filter(
+            is_deleted=False,
+            cliente__cpf__icontains=cpf
+        )
+        qtde_instancias_filhas = cliente.total_requerimentos + cliente.total_atendimentos
+
+        cliente_data = ClienteSerializer(cliente).data
+        requerimentos_data = RequerimentoSerializer(requerimentos_cliente, many=True).data
+        recursos_data = RequerimentoSerializer(recursos_cliente, many=True).data
+        atendimentos_data = AtendimentoSerializer(atendimentos_cliente, many=True).data
+
+        data = {
+            "title": f"Cliente {cpf}",
+            "cliente": cliente_data,
+            "requerimentos": requerimentos_data,
+            "recursos": recursos_data,
+            "atendimentos": atendimentos_data,
+            "qtde_instancias_filhas": qtde_instancias_filhas,
+        }
+        return Response(data)
+
+    def perform_update(self, serializer):
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        instance.is_deleted = True
+        instance.save()
+
 
 @method_decorator(login_required(login_url="login"), name="dispatch")
 class ClienteDetailView(DetailView):
@@ -108,7 +175,7 @@ class ClienteDetailView(DetailView):
         cpf = self.kwargs.get('cpf')
         obj = get_object_or_404(Cliente, cpf=cpf)
         if obj.is_deleted:
-            raise Http404("Requerimento não encontrado")
+            raise Http404("Cliente não encontrado")
         return obj
 
     def get_context_data(self, **kwargs):
@@ -156,7 +223,7 @@ class ClienteUpdateView(UpdateView):
     def get_object(self, queryset=None):
         obj = super().get_object(queryset)
         if obj.is_deleted:
-            raise Http404("Requerimento não encontrado")
+            raise Http404("Cliente não encontrado")
         return obj
 
 
@@ -194,7 +261,7 @@ class ClienteDeleteView(DeleteView):
     def get_object(self, queryset=None):
         obj = super().get_object(queryset)
         if obj.is_deleted:
-            raise Http404("Requerimento não encontrado")
+            raise Http404("Cliente não encontrado")
         return obj
 
 
