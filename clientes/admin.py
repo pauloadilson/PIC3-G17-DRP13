@@ -24,12 +24,12 @@ class ClienteAdmin(admin.ModelAdmin):
 
 @admin.register(Requerimento)
 class RequerimentoAdmin(admin.ModelAdmin):
-    list_display = ( 'protocolo','NB','requerente_titular','servico',  'requerente_dependentes', 'tutor_curador', 'instituidor', 'data', 'email',  'observacao', 'is_deleted')
+    list_display = ( 'id', 'protocolo','NB','requerente_titular','servico',  'requerente_dependentes', 'tutor_curador', 'instituidor', 'data', 'email',  'observacao', 'is_deleted')
     search_fields = ('NB', 'requerente_titular__nome', 'requererente_titular__cpf')
 
 @admin.register(RequerimentoInicial)
 class RequerimentoInicialAdmin(admin.ModelAdmin):
-    list_display = ( 'protocolo','NB','requerente_titular','servico',  'requerente_dependentes', 'tutor_curador', 'instituidor', 'data', 'email','estado',  'observacao', 'is_deleted')
+    list_display = ( 'id', 'protocolo','NB','requerente_titular','servico',  'requerente_dependentes', 'tutor_curador', 'instituidor', 'data', 'email','estado',  'observacao', 'is_deleted')
     search_fields = ('NB', 'requerente_titular__nome', 'requererente_titular__cpf')
 
 @admin.register(EstadoRequerimentoInicial)

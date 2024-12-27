@@ -1,6 +1,7 @@
-from django.urls import path
 from django.urls import path, include
 from clientes.views import (
+    AtendimentoCreateListAPIView,
+    AtendimentoRetrieveUpdateDestroyAPIView,
     AtendimentoCreateView,
     AtendimentoDeleteView,
     AtendimentoDetailView,
@@ -16,6 +17,7 @@ from clientes.views import (
     ClienteDeleteView,
     MudancaEstadoRequerimentoInicialCreateView,
     MudancaEstadoRequerimentoInicialDeleteView,
+    RequerimentoInicialCreateListAPIView,
     RequerimentoInicialCreateView,
     RequerimentoInicialDetailView,
     RequerimentoInicialUpdateView,
@@ -35,6 +37,13 @@ from clientes.views import (
     PrazoView,
 )
 
+from rest_framework.routers import DefaultRouter
+from .views import ClienteViewSet, RequerimentoInicialViewSet
+
+router = DefaultRouter()
+router.register(r'clientesSet', ClienteViewSet)
+router.register(r'requerimentos_iniciaisSet', RequerimentoInicialViewSet)
+
 urlpatterns = [
     path("", IndexView.as_view(), name="index"),
     path("clientes/", ClientesListView.as_view(), name="clientes"),
@@ -43,10 +52,6 @@ urlpatterns = [
         path('<str:cpf>', ClienteDetailView.as_view(), name='cliente'),
         path('<str:cpf>/atualizar', ClienteUpdateView.as_view(), name='atualizar_cliente'),
         path('<str:cpf>/excluir', ClienteDeleteView.as_view(), name='excluir_cliente'),
-    ])),
-    path('api/v1/clientes/', include ([
-            path("", ClienteCreateListAPIView.as_view(), name='cliente-create-list'),
-            path("<str:cpf>", ClienteRetrieveUpdateDestroyAPIView.as_view(), name='cliente-detail-update-delete'),
     ])),
     path('escolher-requerimento/<str:cpf>', EscolherTipoRequerimentoView.as_view(), name='escolher_tipo_requerimento'),
     path("requerimento_inicial/<str:cpf>/", include ([
@@ -83,4 +88,17 @@ urlpatterns = [
                 path("<str:cpf>/<int:pk>/excluir", AtendimentoDeleteView.as_view(), name="excluir_atendimento"),
     ])),
     path("prazos", PrazoView.as_view(), name="prazos"),
+    path('api/v1/clientes/', include ([
+            path("", ClienteCreateListAPIView.as_view(), name='cliente-create-list'),
+            path("<str:cpf>", ClienteRetrieveUpdateDestroyAPIView.as_view(), name='cliente-detail-update-delete'),
+    ])),
+        path('api/v1/requerimento-inicial/', include ([
+            path("", RequerimentoInicialCreateListAPIView.as_view(), name='requerimento_inicial-create-list'),
+        #     path("<int:pk>", ClienteRetrieveUpdateDestroyAPIView.as_view(), name='cliente-detail-update-delete'),
+    ])),
+        path('api/v1/atendimento/', include ([
+            path("", AtendimentoCreateListAPIView.as_view(), name='atendimento-create-list'),
+            path("<int:pk>", AtendimentoRetrieveUpdateDestroyAPIView.as_view(), name='atendimento-detail-update-delete'),
+    ])),
+    path('api/v1/', include(router.urls)),
 ]

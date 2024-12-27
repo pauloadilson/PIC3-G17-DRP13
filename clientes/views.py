@@ -5,6 +5,7 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIV
 from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import (
     TemplateView,
     ListView,
@@ -46,7 +47,13 @@ from django.shortcuts import get_object_or_404, redirect
 from itertools import chain
 from django.utils import timezone
 
-from clientes.serializers import AtendimentoSerializer, ClienteSerializer, RequerimentoInicialSerializer, RequerimentoRecursoSerializer, RequerimentoSerializer
+from clientes.serializers import (
+    AtendimentoSerializer, 
+    ClienteSerializer, 
+    #RequerimentoSerializer,
+    RequerimentoInicialSerializer, 
+    RequerimentoRecursoSerializer,
+)
 
 # Create your views here.
 class IndexView(TemplateView):
@@ -102,66 +109,6 @@ class ClienteCreateView(CreateView):
     def get_success_url(self):
         return reverse_lazy("cliente", kwargs={"cpf": self.object.cpf})
 
-class ClienteCreateListAPIView(ListCreateAPIView):
-    queryset = Cliente.objects.all()
-    serializer_class = ClienteSerializer
-
-    def get_queryset(self):
-        return Cliente.objects.filter(is_deleted=False)
-    
-
-    def perform_create(self, serializer):
-        serializer.save()
-
-class ClienteRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
-    queryset = Cliente.objects.all()
-    serializer_class = ClienteSerializer
-
-    def get_object(self):
-        return get_object_or_404(Cliente, cpf=self.kwargs['cpf'])
-
-    def get(self, request, cpf, format=None):
-        cliente = get_object_or_404(Cliente, cpf=cpf)
-        if cliente.is_deleted:
-            raise NotFound("Cliente não encontrado")
-
-        requerimentos_cliente = RequerimentoInicial.objects.filter(
-            is_deleted=False,
-            requerente_titular__cpf__icontains=cpf
-        )
-        
-        recursos_cliente = RequerimentoRecurso.objects.filter(
-            is_deleted=False,
-            requerente_titular__cpf__icontains=cpf
-        )
-        atendimentos_cliente = Atendimento.objects.filter(
-            is_deleted=False,
-            cliente__cpf__icontains=cpf
-        )
-        qtde_instancias_filhas = cliente.total_requerimentos + cliente.total_atendimentos
-
-        cliente_data = ClienteSerializer(cliente).data
-        requerimentos_data = RequerimentoSerializer(requerimentos_cliente, many=True).data
-        recursos_data = RequerimentoSerializer(recursos_cliente, many=True).data
-        atendimentos_data = AtendimentoSerializer(atendimentos_cliente, many=True).data
-
-        data = {
-            "title": f"Cliente {cpf}",
-            "cliente": cliente_data,
-            "requerimentos": requerimentos_data,
-            "recursos": recursos_data,
-            "atendimentos": atendimentos_data,
-            "qtde_instancias_filhas": qtde_instancias_filhas,
-        }
-        return Response(data)
-
-    def perform_update(self, serializer):
-        serializer.save()
-
-    def perform_destroy(self, instance):
-        instance.is_deleted = True
-        instance.save()
-
 
 @method_decorator(login_required(login_url="login"), name="dispatch")
 class ClienteDetailView(DetailView):
@@ -182,14 +129,14 @@ class ClienteDetailView(DetailView):
         context = super(ClienteDetailView, self).get_context_data(**kwargs)
         cliente_id = self.object.cpf
         title = f"Cliente {cliente_id}"
-        requerimentos_cliente = RequerimentoInicial.objects.filter(
+        requerimentos_cliente = self.object.cliente_titular_requerimento.filter(
             is_deleted=False
-        ).filter(requerente_titular__cpf__icontains=cliente_id)
-        recursos_cliente = RequerimentoRecurso.objects.filter(is_deleted=False).filter(
-            requerente_titular__cpf__icontains=cliente_id
         )
-        atendimentos_cliente = Atendimento.objects.filter(is_deleted=False).filter(
-            cliente__cpf__icontains=cliente_id
+        recursos_cliente = self.object.cliente_titular_requerimento.filter(
+            is_deleted=False
+        )
+        atendimentos_cliente = self.object.cliente_atendimento.filter(
+            is_deleted=False
         )
         qtde_instancias_filhas = self.object.total_requerimentos + self.object.total_atendimentos
 
@@ -346,16 +293,27 @@ class RequerimentoRecursoCreateView(CreateView):
     def get_initial(self):
         initial = super().get_initial()
         # Filtra o cliente titular do requerimento se is_deleted=False
-        initial["requerente_titular"] = Cliente.objects.filter(is_deleted=False).get(
+        initial["requerente_titular"] = Cliente.objects.filter(
+            is_deleted=False
+            ).get(
             cpf=self.kwargs["cpf"]
         )
         return initial
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
+        requerente_titular = self.get_initial().get("requerente_titular")
         # Filtra os clientes com is_deleted=False para os campos tutor_curador e instituidor
-        form.fields["tutor_curador"].queryset = Cliente.objects.filter(is_deleted=False)
-        form.fields["instituidor"].queryset = Cliente.objects.filter(is_deleted=False)
+        form.fields["tutor_curador"].queryset = Cliente.objects.filter(
+            is_deleted=False
+            ).exclude(
+                cpf=requerente_titular.cpf
+        )
+        form.fields["instituidor"].queryset = Cliente.objects.filter(
+            is_deleted=False
+            ).exclude(
+                cpf=requerente_titular.cpf
+        )
         return form
 
     def form_valid(self, form):
@@ -395,15 +353,14 @@ class RequerimentoInicialDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(RequerimentoInicialDetailView, self).get_context_data(**kwargs)
-
-        cliente_id = self.object.requerente_titular.cpf
-        cliente = Cliente.objects.filter(is_deleted=False).filter(
-            cpf__icontains=cliente_id
-        )[
-            0
-        ]  # .order_by('nome') '-nome' para ordem decrescente
-        exigencias = self.object.requerimento_exigencia.filter(is_deleted=False).filter(requerimento__id=self.object.id)
-        historico_mudancas_de_estado = self.object.historico_estado_requerimento.filter(is_deleted=False).filter(requerimento__id=self.object.id)
+        
+        cliente = self.object.requerente_titular
+        exigencias = self.object.requerimento_exigencia.filter(
+            is_deleted=False
+        )
+        historico_mudancas_de_estado = self.object.historico_estado_requerimento.filter(
+            is_deleted=False
+        )
         qtde_exigencias = self.object.total_exigencias
         qtde_mudancas_estado = self.object.total_mudancas_estado
         qtde_instancias_filhas = qtde_exigencias + qtde_mudancas_estado
@@ -436,20 +393,15 @@ class RequerimentoRecursoDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super(RequerimentoRecursoDetailView, self).get_context_data(**kwargs)
 
-        cliente_id = self.object.requerente_titular.cpf
-        cliente = Cliente.objects.filter(is_deleted=False).filter(
-            cpf__icontains=cliente_id
-        )[
-            0
-        ]  # .order_by('nome') '-nome' para ordem decrescente
-        exigencias_requerimento = self.object.requerimento_exigencia.filter(
+        cliente = self.object.requerente_titular
+        exigencias = self.object.requerimento_exigencia.filter(
             is_deleted=False
-        ).filter(requerimento__id=self.object.id)
+        )
         qtde_instancias_filhas = self.object.total_exigencias
 
         context["title"] = self.title
         context["cliente"] = cliente
-        context["exigencias_requerimento"] = exigencias_requerimento
+        context["exigencias_requerimento"] = exigencias
         context["qtde_instancias_filhas"] = qtde_instancias_filhas
         return context
 
@@ -523,17 +475,16 @@ class RequerimentoInicialDeleteView(DeleteView):
 
     def get_context_data(self, **kwargs):
         context = super(RequerimentoInicialDeleteView, self).get_context_data(**kwargs)
-
-        exigencias_requerimento = ExigenciaRequerimentoInicial.objects.filter(
+        
+        exigencias = self.object.requerimento_exigencia.filter(
             is_deleted=False
-        ).filter(requerimento__id=self.object.id)
+        )
         qtde_instancias_filhas = self.object.total_exigencias
-        result_list = exigencias_requerimento
         context["title"] = self.title
         context["form_title_identificador"] = f"de NB nº {self.object.NB}"
         context["tipo_objeto"] = self.tipo_objeto
         context["qtde_instancias_filhas"] = qtde_instancias_filhas
-        context["result_list"] = result_list
+        context["result_list"] = exigencias
         return context
 
     def get_object(self, queryset=None):
@@ -558,17 +509,16 @@ class RequerimentoRecursoDeleteView(DeleteView):
     def get_context_data(self, **kwargs):
         context = super(RequerimentoRecursoDeleteView, self).get_context_data(**kwargs)
 
-        exigencias_requerimento = ExigenciaRequerimentoRecurso.objects.filter(
+        exigencias = self.object.requerimento_exigencia.filter(
             is_deleted=False
-        ).filter(requerimento__id=self.object.id)
+        )
         qtde_instancias_filhas = self.object.total_exigencias
-        result_list = exigencias_requerimento
 
         context["title"] = self.title
         context["form_title_identificador"] = f"de NB nº {self.object.NB}"
         context["tipo_objeto"] = self.tipo_objeto
         context["qtde_instancias_filhas"] = qtde_instancias_filhas
-        context["result_list"] = result_list
+        context["result_list"] = exigencias
         return context
 
     def get_object(self, queryset=None):
@@ -993,3 +943,86 @@ class AtendimentoDeleteView(DeleteView):
 
     def get_success_url(self):
         return reverse_lazy("atendimentos")
+
+
+# REST FRAMEWORK API
+
+class ClienteCreateListAPIView(ListCreateAPIView):
+    queryset = Cliente.objects.all()
+    serializer_class = ClienteSerializer
+
+    def get_queryset(self):
+        return Cliente.objects.filter(is_deleted=False)
+    
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+class ClienteRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    queryset = Cliente.objects.all()
+    serializer_class = ClienteSerializer
+
+    def get_object(self):
+        return get_object_or_404(Cliente, cpf=self.kwargs['cpf'])
+
+    def perform_update(self, serializer):
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        instance.is_deleted = True
+        instance.save()
+
+
+class RequerimentoInicialCreateListAPIView(ListCreateAPIView):
+    queryset = RequerimentoInicial.objects.all()
+    serializer_class = RequerimentoInicialSerializer
+
+    def get_queryset(self):
+        return RequerimentoInicial.objects.filter(is_deleted=False)
+    
+    def perform_create(self, serializer):
+        serializer.save()
+
+class AtendimentoCreateListAPIView(ListCreateAPIView):
+    queryset = Atendimento.objects.all()
+    serializer_class = AtendimentoSerializer
+
+    def get_queryset(self):
+        return Atendimento.objects.filter(is_deleted=False)
+    
+    def perform_create(self, serializer):
+        serializer.save()
+    
+class AtendimentoRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    queryset = Atendimento.objects.all()
+    serializer_class = AtendimentoSerializer
+    
+    def get_queryset(self):
+        return Atendimento.objects.filter(is_deleted=False)
+    
+    def perform_create(self, serializer):
+        serializer.save()
+        
+        
+from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.response import Response
+# from .serializers import ClienteComRequerimentoSerializer#, RequerimentoSerializer
+
+
+class ClienteViewSet(viewsets.ModelViewSet):
+    queryset = Cliente.objects.all()
+    serializer_class = ClienteSerializer
+    lookup_field = 'cpf'
+
+    @action(detail=True, methods=['get'])
+    def requerimentos_iniciaisSet(self, request, cpf=None):
+        cliente = self.get_object()
+        requerimentos_iniciais = RequerimentoInicial.objects.filter(requerente_titular=cliente)
+        # requerimentos = cliente.cliente_titular_requerimento.all()
+        serializer = RequerimentoInicialSerializer(requerimentos_iniciais, many=True)
+        return Response(serializer.data)
+
+class RequerimentoInicialViewSet(viewsets.ModelViewSet):
+    queryset = RequerimentoInicial.objects.all()
+    serializer_class = RequerimentoInicialSerializer
