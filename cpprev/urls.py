@@ -24,6 +24,7 @@ urlpatterns = [
     path("", include("clientes.urls")),
     path("", include("login.urls")),
     path("", include("agenda.urls")),
+    path("api/v1/", include("cpprev_authentication.urls")),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
