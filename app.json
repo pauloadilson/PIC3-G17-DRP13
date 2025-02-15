@@ -1,7 +1,9 @@
 {
     "environments": {
       "test": {
-        "scripts": "python manage.py test"
+        "scripts": {
+          "test": "python manage.py test"
+        }
       }
     }
   }
