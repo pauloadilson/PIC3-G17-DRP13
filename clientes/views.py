@@ -948,6 +948,7 @@ class AtendimentoDeleteView(DeleteView):
 # REST FRAMEWORK API
 
 class ClienteCreateListAPIView(ListCreateAPIView):
+    permission_classes = (IsAuthenticated,)
     queryset = Cliente.objects.all()
     serializer_class = ClienteSerializer
 
@@ -959,6 +960,7 @@ class ClienteCreateListAPIView(ListCreateAPIView):
         serializer.save()
 
 class ClienteRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    permission_classes = (IsAuthenticated,)
     queryset = Cliente.objects.all()
     serializer_class = ClienteSerializer
 
@@ -974,6 +976,7 @@ class ClienteRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
 
 
 class RequerimentoInicialCreateListAPIView(ListCreateAPIView):
+    permission_classes = (IsAuthenticated,)
     queryset = RequerimentoInicial.objects.all()
     serializer_class = RequerimentoInicialSerializer
 
@@ -984,6 +987,7 @@ class RequerimentoInicialCreateListAPIView(ListCreateAPIView):
         serializer.save()
 
 class AtendimentoCreateListAPIView(ListCreateAPIView):
+    permission_classes = (IsAuthenticated,)
     queryset = Atendimento.objects.all()
     serializer_class = AtendimentoSerializer
 
@@ -994,6 +998,7 @@ class AtendimentoCreateListAPIView(ListCreateAPIView):
         serializer.save()
     
 class AtendimentoRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    permission_classes = (IsAuthenticated,)
     queryset = Atendimento.objects.all()
     serializer_class = AtendimentoSerializer
     
@@ -1011,6 +1016,7 @@ from rest_framework.response import Response
 
 
 class ClienteViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
     queryset = Cliente.objects.all()
     serializer_class = ClienteSerializer
     lookup_field = 'cpf'
@@ -1024,5 +1030,6 @@ class ClienteViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 class RequerimentoInicialViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
     queryset = RequerimentoInicial.objects.all()
     serializer_class = RequerimentoInicialSerializer
