@@ -1008,28 +1008,3 @@ class AtendimentoRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     def perform_create(self, serializer):
         serializer.save()
         
-        
-from rest_framework import viewsets
-from rest_framework.decorators import action
-from rest_framework.response import Response
-# from .serializers import ClienteComRequerimentoSerializer#, RequerimentoSerializer
-
-
-class ClienteViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated,)
-    queryset = Cliente.objects.all()
-    serializer_class = ClienteSerializer
-    lookup_field = 'cpf'
-
-    @action(detail=True, methods=['get'])
-    def requerimentos_iniciaisSet(self, request, cpf=None):
-        cliente = self.get_object()
-        requerimentos_iniciais = RequerimentoInicial.objects.filter(requerente_titular=cliente)
-        # requerimentos = cliente.cliente_titular_requerimento.all()
-        serializer = RequerimentoInicialSerializer(requerimentos_iniciais, many=True)
-        return Response(serializer.data)
-
-class RequerimentoInicialViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated,)
-    queryset = RequerimentoInicial.objects.all()
-    serializer_class = RequerimentoInicialSerializer

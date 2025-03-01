@@ -37,12 +37,7 @@ from clientes.views import (
     PrazoView,
 )
 
-from rest_framework.routers import DefaultRouter
 from .views import ClienteViewSet, RequerimentoInicialViewSet
-
-router = DefaultRouter()
-router.register(r'clientesSet', ClienteViewSet)
-router.register(r'requerimentos_iniciaisSet', RequerimentoInicialViewSet)
 
 urlpatterns = [
     path("", IndexView.as_view(), name="index"),
@@ -100,5 +95,4 @@ urlpatterns = [
             path("", AtendimentoCreateListAPIView.as_view(), name='atendimento-create-list'),
             path("<int:pk>", AtendimentoRetrieveUpdateDestroyAPIView.as_view(), name='atendimento-detail-update-delete'),
     ])),
-    path('api/v1/', include(router.urls)),
 ]
