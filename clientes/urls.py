@@ -37,8 +37,6 @@ from clientes.views import (
     PrazoView,
 )
 
-from .views import ClienteViewSet, RequerimentoInicialViewSet
-
 urlpatterns = [
     path("", IndexView.as_view(), name="index"),
     path("clientes/", ClientesListView.as_view(), name="clientes"),
