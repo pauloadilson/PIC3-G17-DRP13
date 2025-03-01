@@ -1,8 +1,6 @@
 from datetime import datetime
 from django.http import Http404
 from django.db.models.base import Model as Model
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView
-from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.views.decorators.csrf import csrf_exempt
@@ -946,74 +944,10 @@ class AtendimentoDeleteView(DeleteView):
 
 
 # REST FRAMEWORK API
-
-class ClienteCreateListAPIView(ListCreateAPIView):
-    permission_classes = (IsAuthenticated,)
-    queryset = Cliente.objects.all()
-    serializer_class = ClienteSerializer
-
-    def get_queryset(self):
-        return Cliente.objects.filter(is_deleted=False)
-    
-
-    def perform_create(self, serializer):
-        serializer.save()
-
-class ClienteRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
-    permission_classes = (IsAuthenticated,)
-    queryset = Cliente.objects.all()
-    serializer_class = ClienteSerializer
-
-    def get_object(self):
-        return get_object_or_404(Cliente, cpf=self.kwargs['cpf'])
-
-    def perform_update(self, serializer):
-        serializer.save()
-
-    def perform_destroy(self, instance):
-        instance.is_deleted = True
-        instance.save()
-
-
-class RequerimentoInicialCreateListAPIView(ListCreateAPIView):
-    permission_classes = (IsAuthenticated,)
-    queryset = RequerimentoInicial.objects.all()
-    serializer_class = RequerimentoInicialSerializer
-
-    def get_queryset(self):
-        return RequerimentoInicial.objects.filter(is_deleted=False)
-    
-    def perform_create(self, serializer):
-        serializer.save()
-
-class AtendimentoCreateListAPIView(ListCreateAPIView):
-    permission_classes = (IsAuthenticated,)
-    queryset = Atendimento.objects.all()
-    serializer_class = AtendimentoSerializer
-
-    def get_queryset(self):
-        return Atendimento.objects.filter(is_deleted=False)
-    
-    def perform_create(self, serializer):
-        serializer.save()
-    
-class AtendimentoRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
-    permission_classes = (IsAuthenticated,)
-    queryset = Atendimento.objects.all()
-    serializer_class = AtendimentoSerializer
-    
-    def get_queryset(self):
-        return Atendimento.objects.filter(is_deleted=False)
-    
-    def perform_create(self, serializer):
-        serializer.save()
-        
         
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-# from .serializers import ClienteComRequerimentoSerializer#, RequerimentoSerializer
-
 
 class ClienteViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)

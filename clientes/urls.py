@@ -1,14 +1,10 @@
 from django.urls import path, include
 from clientes.views import (
-    AtendimentoCreateListAPIView,
-    AtendimentoRetrieveUpdateDestroyAPIView,
     AtendimentoCreateView,
     AtendimentoDeleteView,
     AtendimentoDetailView,
     AtendimentoUpdateView,
     AtendimentosListView,
-    ClienteCreateListAPIView,
-    ClienteRetrieveUpdateDestroyAPIView,
     IndexView,
     ClientesListView,
     ClienteCreateView,
@@ -17,7 +13,6 @@ from clientes.views import (
     ClienteDeleteView,
     MudancaEstadoRequerimentoInicialCreateView,
     MudancaEstadoRequerimentoInicialDeleteView,
-    RequerimentoInicialCreateListAPIView,
     RequerimentoInicialCreateView,
     RequerimentoInicialDetailView,
     RequerimentoInicialUpdateView,
@@ -88,17 +83,5 @@ urlpatterns = [
                 path("<str:cpf>/<int:pk>/excluir", AtendimentoDeleteView.as_view(), name="excluir_atendimento"),
     ])),
     path("prazos", PrazoView.as_view(), name="prazos"),
-    path('api/v1/clientes/', include ([
-            path("", ClienteCreateListAPIView.as_view(), name='cliente-create-list'),
-            path("<str:cpf>", ClienteRetrieveUpdateDestroyAPIView.as_view(), name='cliente-detail-update-delete'),
-    ])),
-        path('api/v1/requerimento-inicial/', include ([
-            path("", RequerimentoInicialCreateListAPIView.as_view(), name='requerimento_inicial-create-list'),
-        #     path("<int:pk>", ClienteRetrieveUpdateDestroyAPIView.as_view(), name='cliente-detail-update-delete'),
-    ])),
-        path('api/v1/atendimento/', include ([
-            path("", AtendimentoCreateListAPIView.as_view(), name='atendimento-create-list'),
-            path("<int:pk>", AtendimentoRetrieveUpdateDestroyAPIView.as_view(), name='atendimento-detail-update-delete'),
-    ])),
     path('api/v1/', include(router.urls)),
 ]
