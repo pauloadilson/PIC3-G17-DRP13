@@ -179,22 +179,3 @@ class ClienteDeleteView(DeleteView):
         if obj.is_deleted:
             raise Http404("Requerimento não encontrado")
         return obj
-
-@method_decorator(login_required(login_url="login"), name="dispatch")
-class PrazoView(TemplateView):
-    template_name = "prazo.html"
-    title = "Prazo"
-
-    def get_context_data(self, **kwargs) -> dict[str, any]:
-        context = super(PrazoView, self).get_context_data(**kwargs)
-        hoje = timezone.localdate()
-        hoje_aware = timezone.make_aware(datetime.combine(hoje, datetime.min.time()))
-        eventos = Evento.objects.filter(
-            data_inicio__gte=hoje_aware,
-            ).filter(
-            tipo="prazo",
-            ).order_by('data_inicio')[:5]
-        context["title"] = self.title
-        context["agenda"] = eventos
-        return context
-

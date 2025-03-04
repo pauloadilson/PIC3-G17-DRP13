@@ -7,7 +7,6 @@ from clientes.views import (
     ClienteDetailView,
     ClienteUpdateView,
     ClienteDeleteView,
-    PrazoView,
 )
 
 urlpatterns = [
@@ -19,5 +18,4 @@ urlpatterns = [
         path('<str:cpf>/atualizar', ClienteUpdateView.as_view(), name='atualizar_cliente'),
         path('<str:cpf>/excluir', ClienteDeleteView.as_view(), name='excluir_cliente'),
     ])),
-    path("prazos", PrazoView.as_view(), name="prazos"),
 ]
