@@ -34,7 +34,7 @@ SECRET_KEY = os.environ.get(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", default=True)
 
-ALLOWED_HOSTS = ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', "https://cpprev-89685ab9a32d.herokuapp.com/").split(',')
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', "https://cpprev-89685ab9a32d.herokuapp.com/").split(',')
 
 
 # Application definition
@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "login",
     "agenda",
     "requerimentos",
+    "atendimentos",
 ]
 
 SITE_ID = 1
