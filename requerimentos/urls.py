@@ -7,7 +7,6 @@ from requerimentos.views import (
     RequerimentoInicialDetailView,
     RequerimentoInicialUpdateView,
     RequerimentoInicialDeleteView,
-    RequerimentoInicialCienciaView,
     RequerimentoRecursoCreateView,
     RequerimentoRecursoDetailView,
     RequerimentoRecursoUpdateView,
@@ -19,7 +18,6 @@ from requerimentos.views import (
     ExigenciaRequerimentoRecursoUpdateView,
     ExigenciaRequerimentoRecursoDeleteView,
     EscolherTipoRequerimentoView,
-    PrazoView,
 )
 
 urlpatterns = [

@@ -12,7 +12,6 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from clientes.models import Cliente
 from requerimentos.models import (
-    Cliente,
     HistoricoMudancaEstadoRequerimentoInicial, 
     Requerimento,
     RequerimentoInicial,
