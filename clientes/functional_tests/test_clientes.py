@@ -96,16 +96,16 @@ class TestClientes(StaticLiveServerTestCase):
         element = self.driver.find_element(By.XPATH,"/html/body/div/main/div/div[1]/p/a")
         element.click()
 
-        element = self.driver.find_element(By.XPATH,"/html/body/div[1]/main/div/div[1]/div")
+        element = self.driver.find_element(By.XPATH,"/html/body/div[2]/main/div/div[1]/div")
         self.assertEqual(element.text, "Novo Cliente")
         
         # verificar se o botão salvar está presente
-        element = self.driver.find_element(By.XPATH,"/html/body/div[1]/main/div/div[2]/form/div[8]/div/input[1]")
+        element = self.driver.find_element(By.XPATH,"/html/body/div[2]/main/div/div[2]/form/div[8]/div/input[1]")
         name_attribute = element.get_attribute("value")
         self.assertEqual(name_attribute, "Salvar")
         
         # verificar se o botão voltar está presente e funcionando
-        element = self.driver.find_element(By.XPATH,"/html/body/div[1]/main/div/div[2]/form/div[8]/div/input[2]")
+        element = self.driver.find_element(By.XPATH,"/html/body/div[2]/main/div/div[2]/form/div[8]/div/input[2]")
         name_attribute = element.get_attribute("value")
         self.assertEqual(name_attribute, "Voltar")
         self.driver.execute_script("arguments[0].scrollIntoView(true);", element)
@@ -118,28 +118,28 @@ class TestClientes(StaticLiveServerTestCase):
         self.page = self.driver.get(self.adicionar_cliente_url)
         self.driver.maximize_window()
 
-        element = self.driver.find_element(By.XPATH,"/html/body/div[1]/main/div/div[2]/form/div[1]/input")
+        element = self.driver.find_element(By.XPATH,"/html/body/div[2]/main/div/div[2]/form/div[1]/input")
         element.send_keys(self.cliente1['cpf'])
 
-        element = self.driver.find_element(By.XPATH,"/html/body/div[1]/main/div/div[2]/form/div[2]/input")
+        element = self.driver.find_element(By.XPATH,"/html/body/div[2]/main/div/div[2]/form/div[2]/input")
         element.send_keys(self.cliente1['nome'])
 
-        element = self.driver.find_element(By.XPATH,"/html/body/div[1]/main/div/div[2]/form/div[3]/input")
+        element = self.driver.find_element(By.XPATH,"/html/body/div[2]/main/div/div[2]/form/div[3]/input")
         element.send_keys(self.cliente1['data_nascimento'])
 
-        element = self.driver.find_element(By.XPATH,"/html/body/div[1]/main/div/div[2]/form/div[4]/input")
+        element = self.driver.find_element(By.XPATH,"/html/body/div[2]/main/div/div[2]/form/div[4]/input")
         element.send_keys(self.cliente1['telefone_whatsapp'])
 
-        element = self.driver.find_element(By.XPATH,"/html/body/div[1]/main/div/div[2]/form/div[5]/input")
+        element = self.driver.find_element(By.XPATH,"/html/body/div[2]/main/div/div[2]/form/div[5]/input")
         element.send_keys(self.cliente1['telefone'])
 
-        element = self.driver.find_element(By.XPATH,"/html/body/div[1]/main/div/div[2]/form/div[6]/textarea")
+        element = self.driver.find_element(By.XPATH,"/html/body/div[2]/main/div/div[2]/form/div[6]/textarea")
         element.send_keys(self.cliente1['observacao_telefone'])
 
-        element = self.driver.find_element(By.XPATH,"/html/body/div[1]/main/div/div[2]/form/div[7]/input")
+        element = self.driver.find_element(By.XPATH,"/html/body/div[2]/main/div/div[2]/form/div[7]/input")
         element.send_keys(self.cliente1['email'])
 
-        element = self.driver.find_element(By.XPATH,"/html/body/div[1]/main/div/div[2]/form/div[8]/div/input[1]")
+        element = self.driver.find_element(By.XPATH,"/html/body/div[2]/main/div/div[2]/form/div[8]/div/input[1]")
         self.driver.execute_script("arguments[0].scrollIntoView(true);", element)
         self.driver.execute_script("arguments[0].click();", element)
         
