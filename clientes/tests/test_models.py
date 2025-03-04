@@ -1,5 +1,7 @@
 from django.test import TestCase
-from clientes.models import Cliente, EstadoRequerimentoInicial, RequerimentoInicial, Servico
+from clientes.models import Cliente
+from requerimentos.models import EstadoRequerimentoInicial, RequerimentoInicial, Servico
+
 from django.urls import reverse
 
 # Create your tests here.

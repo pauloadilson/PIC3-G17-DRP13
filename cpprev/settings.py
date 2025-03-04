@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "django_bootstrap_icons",
     "login",
     "agenda",
+    "requerimentos",
 ]
 
 SITE_ID = 1

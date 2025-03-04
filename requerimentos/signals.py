@@ -3,7 +3,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from agenda.models import Evento
-from .models import HistoricoMudancaEstadoRequerimentoInicial, RequerimentoInicial
+from requerimentos.models import HistoricoMudancaEstadoRequerimentoInicial, RequerimentoInicial
 
 @receiver(post_save, sender=HistoricoMudancaEstadoRequerimentoInicial)
 def registrar_mudanca_estado_requerimento_inicial(sender, instance, created, **kwargs):
