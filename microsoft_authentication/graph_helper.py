@@ -1,6 +1,6 @@
 import requests
 import json
-from login.auth_helper import get_token
+from microsoft_authentication.auth_helper import get_token
 
 graph_url = 'https://graph.microsoft.com/v1.0'
 
