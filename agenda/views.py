@@ -16,12 +16,12 @@ from agenda.models import Evento
 from django.urls import reverse_lazy
 from django.conf import settings
 from agenda.forms import EventoForm
-from login.graph_helper import criar_evento_no_microsoft_graph
+from microsoft_authentication.graph_helper import criar_evento_no_microsoft_graph
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 import pytz
-from login.auth_helper import get_token
+from microsoft_authentication.auth_helper import get_token
 # Create your views here.
 # Exibe uma lista de eventos
 @method_decorator(login_required(login_url='login'), name='dispatch')
