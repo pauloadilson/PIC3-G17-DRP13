@@ -28,19 +28,15 @@ class TestUrls(TestCase):
             estado= self.estado1,
         )
 
-    def test_index_url_resolves(self):
-        url = reverse("index")
-        self.assertEqual(resolve(url).func.view_class.__name__, 'IndexView')
+    def test_adicionar_requerimento_inicial_url_resolves(self):
+        url = reverse("adicionar_requerimento_inicial", kwargs={'cpf': self.cliente1.cpf})
+        self.assertEqual(resolve(url).func.view_class.__name__, "RequerimentoInicialCreateView")
+   
+    def test_requerimento_detail_url_resolves(self):
+        url = reverse("requerimento_inicial", kwargs={'cpf': self.cliente1.cpf, 'pk': self.requerimento_inicial1.id})
+        self.assertEqual(resolve(url).func.view_class.__name__, "RequerimentoInicialDetailView")
 
-    def test_clientes_url_resolves(self):
-        url = reverse("clientes")
-        self.assertEqual(resolve(url).func.view_class.__name__, "ClientesListView")
-
-    def test_adicionar_cliente_url_resolves(self):
-        url = reverse("adicionar_cliente")
-        self.assertEqual(resolve(url).func.view_class.__name__, "ClienteCreateView")
-
-    def test_cliente_detail_url_resolves(self):
-        url = reverse("cliente", kwargs={'cpf': self.cliente1.cpf})
-        self.assertEqual(resolve(url).func.view_class.__name__, "ClienteDetailView")
+    def test_adicionar_exigencia_requerimento_inicial_url_resolves(self):
+        url = reverse("adicionar_exigencia_requerimento_inicial", kwargs={'cpf': self.cliente1.cpf, 'pk': self.requerimento_inicial1.id})
+        self.assertEqual(resolve(url).func.view_class.__name__, "ExigenciaRequerimentoInicialCreateView")
         

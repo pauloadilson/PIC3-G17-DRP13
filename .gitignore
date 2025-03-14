@@ -50,6 +50,7 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+functional_tests/
 
 # Translations
 *.mo
@@ -165,3 +166,5 @@ cython_debug/
 # Functional test
 msedgedriver_downloader.exe
 msedgedriver.exe
+
+.vscode/

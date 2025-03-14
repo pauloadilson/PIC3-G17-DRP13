@@ -55,7 +55,8 @@ INSTALLED_APPS = [
     "clientes",
     "login",
     "agenda",
-    "cpprev_authentication"
+    "requerimentos",
+    "atendimentos",
 ]
 
 SITE_ID = 1
