@@ -30,6 +30,10 @@ from django.shortcuts import get_object_or_404, redirect
 from itertools import chain
 from django.utils import timezone
 
+from clientes.serializers import (
+    ClienteSerializer, 
+)
+
 class IndexView(TemplateView):
     template_name = "index.html"
     title = "Página inicial"
@@ -184,3 +188,31 @@ class ClienteDeleteView(DeleteView):
         if obj.is_deleted:
             raise Http404("Cliente não encontrado")
         return obj
+
+class ClienteCreateListAPIView(ListCreateAPIView):
+    permission_classes = (IsAuthenticated,)
+    queryset = Cliente.objects.all()
+    serializer_class = ClienteSerializer
+
+    def get_queryset(self):
+        return Cliente.objects.filter(is_deleted=False)
+    
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+class ClienteRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    permission_classes = (IsAuthenticated,)
+    queryset = Cliente.objects.all()
+    serializer_class = ClienteSerializer
+
+    def get_object(self):
+        return get_object_or_404(Cliente, cpf=self.kwargs['cpf'])
+
+    def perform_update(self, serializer):
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        instance.is_deleted = True
+        instance.save()
+

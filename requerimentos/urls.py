@@ -3,6 +3,7 @@ from django.urls import path, include
 from requerimentos.views import (
     MudancaEstadoRequerimentoInicialCreateView,
     MudancaEstadoRequerimentoInicialDeleteView,
+    RequerimentoInicialCreateListAPIView,
     RequerimentoInicialCreateView,
     RequerimentoInicialDetailView,
     RequerimentoInicialUpdateView,
@@ -46,5 +47,8 @@ urlpatterns = [
             path("adicionar", ExigenciaRequerimentoRecursoCreateView.as_view(), name="adicionar_exigencia_requerimento_recurso"),
             path("atualizar", ExigenciaRequerimentoRecursoUpdateView.as_view(), name="atualizar_exigencia_requerimento_recurso"),
             path("excluir", ExigenciaRequerimentoRecursoDeleteView.as_view(), name="excluir_exigencia_requerimento_recurso"),
+    ])),
+    path('api/v1/requerimento-inicial/', include ([
+            path("", RequerimentoInicialCreateListAPIView.as_view(), name='requerimento_inicial-create-list'),
     ])),
 ]
