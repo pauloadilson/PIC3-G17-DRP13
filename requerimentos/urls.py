@@ -40,7 +40,7 @@ urlpatterns = [
         #     path("<int:pk>/ciencia", MudancaEstadoRequerimentoRecursoCreateView.as_view(), name="ciencia_recurso"),
         #     path("<int:pk>/excluir_mudanca_estado", MudancaEstadoRequerimentoRecursoDeleteView.as_view(), name="excluir_mudanca_estado_recurso"),
     ])),
-    path("requerimento_inicial/<str:cpf>/<int:pk>/exigencia/<int:pk_exigencia/>", include ([
+    path("requerimento_inicial/<str:cpf>/<int:pk>/exigencia/<int:pk_exigencia>/", include ([
             path("adicionar", ExigenciaRequerimentoInicialCreateView.as_view(), name="adicionar_exigencia_requerimento_inicial"),
             path("atualizar", ExigenciaRequerimentoInicialUpdateView.as_view(), name="atualizar_exigencia_requerimento_inicial"),
             path("excluir", ExigenciaRequerimentoInicialDeleteView.as_view(), name="excluir_exigencia_requerimento_inicial"),
