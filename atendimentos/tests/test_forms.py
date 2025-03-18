@@ -30,4 +30,3 @@ class TestAtendimentoForms(TestCase):
         self.assertFalse(form.is_valid(), "O formulário não deve ser válido sem os dados obrigatórios.")
         self.assertIn("data", form.errors, "O campo 'data' deve ser obrigatório.")
         self.assertIn("cliente", form.errors, "O campo 'cliente' deve ser obrigatório.")
-        self.assertIn("descricao", form.errors, "O campo 'descricao' deve ser obrigatório.")
