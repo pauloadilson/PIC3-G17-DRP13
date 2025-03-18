@@ -26,6 +26,7 @@ urlpatterns = [
     path("", include("atendimentos.urls")),
     path("", include("login.urls")),
     path("", include("agenda.urls")),
+    path("api/v1/", include("cpprev_authentication.urls")),
     path("", include("microsoft_authentication.urls")),
 ]
 

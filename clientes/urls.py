@@ -1,4 +1,3 @@
-from django.urls import path
 from django.urls import path, include
 from clientes.views import (
     IndexView,
@@ -7,6 +6,8 @@ from clientes.views import (
     ClienteDetailView,
     ClienteUpdateView,
     ClienteDeleteView,
+    ClienteCreateListAPIView,
+    ClienteRetrieveUpdateDestroyAPIView,
 )
 
 urlpatterns = [
@@ -18,4 +19,9 @@ urlpatterns = [
         path('<str:cpf>/atualizar', ClienteUpdateView.as_view(), name='atualizar_cliente'),
         path('<str:cpf>/excluir', ClienteDeleteView.as_view(), name='excluir_cliente'),
     ])),
+        path('api/v1/clientes/', include ([
+            path("", ClienteCreateListAPIView.as_view(), name='cliente-create-list'),
+            path("<str:cpf>", ClienteRetrieveUpdateDestroyAPIView.as_view(), name='cliente-detail-update-delete'),
+    ])),
+
 ]

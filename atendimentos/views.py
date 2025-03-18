@@ -24,7 +24,12 @@ from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404, redirect
 from itertools import chain
 from django.utils import timezone
-
+from atendimentos.serializers import (
+    AtendimentoSerializer, 
+)
+from rest_framework.permissions import IsAuthenticated
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView
 
 @method_decorator(login_required(login_url="login"), name="dispatch")
 class AtendimentosListView(ListView):
@@ -128,3 +133,29 @@ class AtendimentoDeleteView(DeleteView):
     def get_success_url(self):
         return reverse_lazy("atendimentos")
 
+
+
+
+
+class AtendimentoCreateListAPIView(ListCreateAPIView):
+    permission_classes = (IsAuthenticated,)
+    queryset = Atendimento.objects.all()
+    serializer_class = AtendimentoSerializer
+
+    def get_queryset(self):
+        return Atendimento.objects.filter(is_deleted=False)
+    
+    def perform_create(self, serializer):
+        serializer.save()
+    
+class AtendimentoRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    permission_classes = (IsAuthenticated,)
+    queryset = Atendimento.objects.all()
+    serializer_class = AtendimentoSerializer
+    
+    def get_queryset(self):
+        return Atendimento.objects.filter(is_deleted=False)
+    
+    def perform_create(self, serializer):
+        serializer.save()
+        

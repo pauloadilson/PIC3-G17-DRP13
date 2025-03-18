@@ -1,6 +1,11 @@
 from datetime import datetime
 from django.http import Http404
 from django.db.models.base import Model as Model
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView
+from rest_framework.exceptions import NotFound
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import (
     TemplateView,
     ListView,
@@ -24,6 +29,10 @@ from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404, redirect
 from itertools import chain
 from django.utils import timezone
+
+from clientes.serializers import (
+    ClienteSerializer, 
+)
 
 class IndexView(TemplateView):
     template_name = "index.html"
@@ -91,21 +100,21 @@ class ClienteDetailView(DetailView):
         cpf = self.kwargs.get('cpf')
         obj = get_object_or_404(Cliente, cpf=cpf)
         if obj.is_deleted:
-            raise Http404("Requerimento não encontrado")
+            raise Http404("Cliente não encontrado")
         return obj
 
     def get_context_data(self, **kwargs):
         context = super(ClienteDetailView, self).get_context_data(**kwargs)
         cliente_id = self.object.cpf
         title = f"Cliente {cliente_id}"
-        requerimentos_cliente = RequerimentoInicial.objects.filter(
+        requerimentos_cliente = self.object.cliente_titular_requerimento.filter(
             is_deleted=False
-        ).filter(requerente_titular__cpf__icontains=cliente_id)
-        recursos_cliente = RequerimentoRecurso.objects.filter(is_deleted=False).filter(
-            requerente_titular__cpf__icontains=cliente_id
         )
-        atendimentos_cliente = Atendimento.objects.filter(is_deleted=False).filter(
-            cliente__cpf__icontains=cliente_id
+        recursos_cliente = self.object.cliente_titular_requerimento.filter(
+            is_deleted=False
+        )
+        atendimentos_cliente = self.object.cliente_atendimento.filter(
+            is_deleted=False
         )
         qtde_instancias_filhas = self.object.total_requerimentos + self.object.total_atendimentos
 
@@ -139,7 +148,7 @@ class ClienteUpdateView(UpdateView):
     def get_object(self, queryset=None):
         obj = super().get_object(queryset)
         if obj.is_deleted:
-            raise Http404("Requerimento não encontrado")
+            raise Http404("Cliente não encontrado")
         return obj
 
 
@@ -177,5 +186,33 @@ class ClienteDeleteView(DeleteView):
     def get_object(self, queryset=None):
         obj = super().get_object(queryset)
         if obj.is_deleted:
-            raise Http404("Requerimento não encontrado")
+            raise Http404("Cliente não encontrado")
         return obj
+
+class ClienteCreateListAPIView(ListCreateAPIView):
+    permission_classes = (IsAuthenticated,)
+    queryset = Cliente.objects.all()
+    serializer_class = ClienteSerializer
+
+    def get_queryset(self):
+        return Cliente.objects.filter(is_deleted=False)
+    
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+class ClienteRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+    permission_classes = (IsAuthenticated,)
+    queryset = Cliente.objects.all()
+    serializer_class = ClienteSerializer
+
+    def get_object(self):
+        return get_object_or_404(Cliente, cpf=self.kwargs['cpf'])
+
+    def perform_update(self, serializer):
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        instance.is_deleted = True
+        instance.save()
+
