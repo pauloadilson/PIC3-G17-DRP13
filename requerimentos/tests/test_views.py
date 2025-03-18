@@ -147,37 +147,61 @@ class TestRequerimentoViews(TestCase):
         self.assertEqual(response.status_code, 200)
   
     def test_exigencia_requerimento_inicial_create_view_get(self):
-        url = reverse("adicionar_exigencia_requerimento_inicial", kwargs={"cpf": self.cliente.cpf, "pk": self.req_inicial.id})
+        url = reverse("adicionar_exigencia_requerimento_inicial", kwargs={
+            "cpf": self.cliente.cpf, 
+            "pk": self.req_inicial.id
+        })
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
   
     def test_exigencia_requerimento_recurso_create_view_get(self):
-        url = reverse("adicionar_exigencia_requerimento_recurso", kwargs={"cpf": self.cliente.cpf, "pk": self.req_recurso.id})
+        url = reverse("adicionar_exigencia_requerimento_recurso", kwargs={
+            "cpf": self.cliente.cpf, 
+            "pk": self.req_recurso.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
   
     def test_exigencia_requerimento_inicial_update_view_get(self):
-        url = reverse("atualizar_exigencia_requerimento_inicial", kwargs={"cpf": self.cliente.cpf, "pk": self.req_inicial.id})
+        url = reverse("atualizar_exigencia_requerimento_inicial", kwargs={
+            "cpf": self.cliente.cpf, 
+            "pk": self.req_inicial.id,
+            "pk_exigencia": self.exigencia_inicial.id,
+        })
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
   
     def test_exigencia_requerimento_recurso_update_view_get(self):
-        url = reverse("atualizar_exigencia_requerimento_recurso", kwargs={"cpf": self.cliente.cpf, "pk": self.req_recurso.id})
+        url = reverse("atualizar_exigencia_requerimento_recurso", kwargs={
+            "cpf": self.cliente.cpf, 
+            "pk": self.req_recurso.id,
+            "pk_exigencia": self.exigencia_inicial.id,
+        })
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
   
     def test_exigencia_requerimento_inicial_delete_view_get(self):
-        url = reverse("excluir_exigencia_requerimento_inicial", kwargs={"cpf": self.cliente.cpf, "pk": self.req_inicial.id})
+        url = reverse("excluir_exigencia_requerimento_inicial", kwargs={
+            "cpf": self.cliente.cpf, 
+            "pk": self.req_inicial.id, 
+            "pk_exigencia": self.exigencia_inicial.id,
+        })
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
   
     def test_exigencia_requerimento_recurso_delete_view_get(self):
-        url = reverse("excluir_exigencia_requerimento_recurso", kwargs={"cpf": self.cliente.cpf, "pk": self.req_recurso.id})
+        url = reverse("excluir_exigencia_requerimento_recurso", kwargs={
+            "cpf": self.cliente.cpf, 
+            "pk": self.req_recurso.id, 
+            "pk_exigencia": self.exigencia_inicial.id
+        })
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
   
     def test_requerimento_inicial_ciencia_view_get(self):
-        url = reverse("ciencia_requerimento_inicial", kwargs={"cpf": self.cliente.cpf, "pk": self.req_inicial.id})
+        url = reverse("ciencia_requerimento_inicial", kwargs={
+            "cpf": self.cliente.cpf, 
+            "pk": self.req_inicial.id
+        })
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
   

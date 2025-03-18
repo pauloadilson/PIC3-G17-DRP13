@@ -1,9 +1,14 @@
 from django.test import TestCase
 from django.urls import reverse, resolve
+from django.utils import timezone
 
 from clientes.models import Cliente
 from requerimentos.models import (
+    EstadoExigencia,
     EstadoRequerimentoInicial,
+    ExigenciaRequerimentoInicial,
+    HistoricoMudancaEstadoRequerimentoInicial,
+    Natureza,
     RequerimentoInicial,
     Servico,
     EstadoRequerimentoRecurso,
@@ -46,6 +51,24 @@ class TestUrls(TestCase):
             data="2021-02-01",
             estado=self.estado_recurso,
         )
+        self.natureza = Natureza.objects.create(nome="Documentação")
+        
+        self.estado_exigencia = EstadoExigencia.objects.create(nome="em análise")
+        
+        self.exigencia_inicial = ExigenciaRequerimentoInicial.objects.create(
+            requerimento=self.requerimento_inicial1,
+            natureza=self.natureza,
+            estado=self.estado_exigencia,
+            descricao="Falta documento X",
+            prazo=timezone.now(),
+        )
+        self.exigencia_recurso = ExigenciaRequerimentoRecurso.objects.create(
+            requerimento=self.requerimento_recurso1,
+            natureza=self.natureza,
+            estado=self.estado_exigencia,
+            descricao="Falta documento Y",
+            prazo=timezone.now(),
+        )
 
     def test_adicionar_requerimento_inicial_url_resolves(self):
         url = reverse("adicionar_requerimento_inicial", kwargs={'cpf': self.cliente1.cpf})
@@ -84,9 +107,19 @@ class TestUrls(TestCase):
         self.assertEqual(resolve(url).func.view_class.__name__, "MudancaEstadoRequerimentoInicialCreateView")
 
     def test_excluir_mudanca_estado_requerimento_inicial_url_resolves(self):
+        estado_novo = EstadoRequerimentoInicial.objects.create(nome="Concluído Deferido")
+        
+        historico = HistoricoMudancaEstadoRequerimentoInicial.objects.create(
+            requerimento=self.requerimento_inicial1,
+            estado_anterior=self.requerimento_inicial1.estado,
+            estado_novo=estado_novo,
+            observacao="Teste mudança",
+            data_mudanca=timezone.now(),
+        )
         url = reverse("excluir_mudanca_estado_requerimento_inicial", kwargs={
             'cpf': self.cliente1.cpf,
-            'pk': self.requerimento_inicial1.id
+            'pk': self.requerimento_inicial1.id,
+            "hist_pk": historico.id
         })
         self.assertEqual(resolve(url).func.view_class.__name__, "MudancaEstadoRequerimentoInicialDeleteView")
 
@@ -118,35 +151,39 @@ class TestUrls(TestCase):
     def test_atualizar_exigencia_requerimento_inicial_url_resolves(self):
         url = reverse("atualizar_exigencia_requerimento_inicial", kwargs={
             'cpf': self.cliente1.cpf,
-            'pk': self.requerimento_inicial1.id
+            'pk': self.requerimento_inicial1.id,
+            'pk_exigencia': self.exigencia_inicial.id,
         })
         self.assertEqual(resolve(url).func.view_class.__name__, "ExigenciaRequerimentoInicialUpdateView")
 
     def test_excluir_exigencia_requerimento_inicial_url_resolves(self):
         url = reverse("excluir_exigencia_requerimento_inicial", kwargs={
             'cpf': self.cliente1.cpf,
-            'pk': self.requerimento_inicial1.id
+            'pk': self.requerimento_inicial1.id,
+            'pk_exigencia': self.exigencia_inicial.id,
         })
         self.assertEqual(resolve(url).func.view_class.__name__, "ExigenciaRequerimentoInicialDeleteView")
 
     def test_adicionar_exigencia_requerimento_recurso_url_resolves(self):
         url = reverse("adicionar_exigencia_requerimento_recurso", kwargs={
             'cpf': self.cliente1.cpf,
-            'pk': self.requerimento_recurso1.id
+            'pk': self.requerimento_recurso1.id,
         })
         self.assertEqual(resolve(url).func.view_class.__name__, "ExigenciaRequerimentoRecursoCreateView")
 
     def test_atualizar_exigencia_requerimento_recurso_url_resolves(self):
         url = reverse("atualizar_exigencia_requerimento_recurso", kwargs={
             'cpf': self.cliente1.cpf,
-            'pk': self.requerimento_recurso1.id
+            'pk': self.requerimento_recurso1.id,
+            'pk_exigencia': self.exigencia_recurso.id,
         })
         self.assertEqual(resolve(url).func.view_class.__name__, "ExigenciaRequerimentoRecursoUpdateView")
 
     def test_excluir_exigencia_requerimento_recurso_url_resolves(self):
         url = reverse("excluir_exigencia_requerimento_recurso", kwargs={
             'cpf': self.cliente1.cpf,
-            'pk': self.requerimento_recurso1.id
+            'pk': self.requerimento_recurso1.id,
+            'pk_exigencia': self.exigencia_recurso.id,
         })
         self.assertEqual(resolve(url).func.view_class.__name__, "ExigenciaRequerimentoRecursoDeleteView")
 
