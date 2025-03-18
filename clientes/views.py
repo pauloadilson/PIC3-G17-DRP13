@@ -128,7 +128,7 @@ class ClienteUpdateView(UpdateView):
     slug_url_kwarg = "cpf"
 
     def get_success_url(self):
-        return reverse_lazy("cliente", kwargs={"pk": self.object.cpf})
+        return reverse_lazy("cliente", kwargs={"cpf": self.object.cpf})
 
     def get_context_data(self, **kwargs):
         context = super(ClienteUpdateView, self).get_context_data(**kwargs)

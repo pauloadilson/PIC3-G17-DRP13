@@ -169,12 +169,7 @@ class RequerimentoInicialDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super(RequerimentoInicialDetailView, self).get_context_data(**kwargs)
 
-        cliente_id = self.object.requerente_titular.cpf
-        cliente = Cliente.objects.filter(is_deleted=False).filter(
-            cpf__icontains=cliente_id
-        )[
-            0
-        ]  # .order_by('nome') '-nome' para ordem decrescente
+        cliente = self.object.requerente_titular
         exigencias = self.object.requerimento_exigencia.filter(is_deleted=False).filter(requerimento__id=self.object.id)
         historico_mudancas_de_estado = self.object.historico_estado_requerimento.filter(is_deleted=False).filter(requerimento__id=self.object.id)
         qtde_exigencias = self.object.total_exigencias
@@ -209,20 +204,17 @@ class RequerimentoRecursoDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super(RequerimentoRecursoDetailView, self).get_context_data(**kwargs)
 
-        cliente_id = self.object.requerente_titular.cpf
-        cliente = Cliente.objects.filter(is_deleted=False).filter(
-            cpf__icontains=cliente_id
-        )[
-            0
-        ]  # .order_by('nome') '-nome' para ordem decrescente
-        exigencias_requerimento = self.object.requerimento_exigencia.filter(
+        cliente = self.object.requerente_titular
+        exigencias = self.object.requerimento_exigencia.filter(
             is_deleted=False
         ).filter(requerimento__id=self.object.id)
+        historico_mudancas_de_estado = [] # implementar self.object.historico_estado_requerimento.filter(is_deleted=False).filter(requerimento__id=self.object.id)
         qtde_instancias_filhas = self.object.total_exigencias
 
         context["title"] = self.title
         context["cliente"] = cliente
-        context["exigencias_requerimento"] = exigencias_requerimento
+        context["exigencias_requerimento"] = exigencias
+        context["historico_mudancas_de_estado"] = historico_mudancas_de_estado
         context["qtde_instancias_filhas"] = qtde_instancias_filhas
         return context
 
@@ -624,6 +616,8 @@ class MudancaEstadoRequerimentoInicialDeleteView(DeleteView):
     template_name = "delete.html"
     title = "Excluindo Mudança de Estado do Requerimento"
     tipo_objeto = "a mudança de estado do requerimento"
+    slug_field = "hist_pk"
+    slug_url_kwarg = "hist_pk"
 
     def get_context_data(self, **kwargs):
         context = super(MudancaEstadoRequerimentoInicialDeleteView, self).get_context_data(**kwargs)

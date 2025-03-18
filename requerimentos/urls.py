@@ -18,6 +18,7 @@ from requerimentos.views import (
     ExigenciaRequerimentoRecursoUpdateView,
     ExigenciaRequerimentoRecursoDeleteView,
     EscolherTipoRequerimentoView,
+    RequerimentoInicialCienciaView,
 )
 
 urlpatterns = [
@@ -28,7 +29,7 @@ urlpatterns = [
             path("<int:pk>/atualizar", RequerimentoInicialUpdateView.as_view(), name="atualizar_requerimento_inicial"),
             path("<int:pk>/excluir", RequerimentoInicialDeleteView.as_view(), name="excluir_requerimento_inicial"),
             path("<int:pk>/ciencia", MudancaEstadoRequerimentoInicialCreateView.as_view(), name="ciencia_requerimento_inicial"),
-            path("<int:pk>/excluir_mudanca_estado", MudancaEstadoRequerimentoInicialDeleteView.as_view(), name="excluir_mudanca_estado_requerimento_inicial"),
+            path("<int:pk>/historico/<int:hist_pk>/excluir", MudancaEstadoRequerimentoInicialDeleteView.as_view(), name="excluir_mudanca_estado_requerimento_inicial"),
             
     ])),
     path("requerimento_recurso/<str:cpf>/", include ([
@@ -36,6 +37,8 @@ urlpatterns = [
             path("<int:pk>", RequerimentoRecursoDetailView.as_view(), name="requerimento_recurso"),
             path("<int:pk>/atualizar", RequerimentoRecursoUpdateView.as_view(), name="atualizar_requerimento_recurso"),
             path("<int:pk>/excluir", RequerimentoRecursoDeleteView.as_view(), name="excluir_requerimento_recurso"),
+        #     path("<int:pk>/ciencia", MudancaEstadoRequerimentoRecursoCreateView.as_view(), name="ciencia_recurso"),
+        #     path("<int:pk>/excluir_mudanca_estado", MudancaEstadoRequerimentoRecursoDeleteView.as_view(), name="excluir_mudanca_estado_recurso"),
     ])),
     path("exigencia_requerimento_inicial/<str:cpf>/<int:pk>/", include ([
             path("adicionar", ExigenciaRequerimentoInicialCreateView.as_view(), name="adicionar_exigencia_requerimento_inicial"),
