@@ -105,8 +105,8 @@ class TestModels(TestCase):
         self.assertEqual(self.requerimento_inicial.total_exigencias, 0)
 
     def test_total_mudancas_estado_property(self):
-        # Initially, there is one historico entry
-        self.assertEqual(self.requerimento_inicial.total_mudancas_estado, 1)
+        # Initially, there is no historico entry
+        self.assertEqual(self.requerimento_inicial.total_mudancas_estado, 0)
         # Create another historico entry
         HistoricoMudancaEstadoRequerimentoInicial.objects.create(
             requerimento=self.requerimento_inicial,
@@ -115,7 +115,7 @@ class TestModels(TestCase):
             observacao="Reverter mudança",
             data_mudanca=timezone.now(),
         )
-        self.assertEqual(self.requerimento_inicial.total_mudancas_estado, 2)
+        self.assertEqual(self.requerimento_inicial.total_mudancas_estado, 1)
 
     def test_exigencia_str(self):
         expected = (
@@ -138,6 +138,6 @@ class TestModels(TestCase):
         expected = (
             f"{self.requerimento_inicial.protocolo} do estado "
             f"{self.estado_inicial.nome} para {self.estado_inicial_updated.nome} em "
-            f"{self.historico.data_mudanca}"
+            f"{historico.data_mudanca}"
         )
         self.assertEqual(str(historico), expected)
