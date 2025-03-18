@@ -26,6 +26,7 @@ urlpatterns = [
     path("", include("atendimentos.urls")),
     path("", include("login.urls")),
     path("", include("agenda.urls")),
+    path("", include("microsoft_authentication.urls")),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
