@@ -113,27 +113,31 @@
                         </thead>
                         <tbody>
                         {% if requerimento.get_class_name == 'RequerimentoInicial' %}
-                            {% for exigencia in exigencias %}
-                            <tr>
-                                <td>{{ exigencia.data|date:"d/m/Y" }}</td>
-                                <td>{{ exigencia.natureza }}</td>
-                                <td>{{ exigencia.estado }}</td>
-                                <td >
-                                    <a href="{% url 'atualizar_exigencia_requerimento_inicial' cliente.cpf requerimento.id %}" class="btn btn-warning">{% bs_icon 'pencil-square' %}</a>
-                                    <a href="{% url 'excluir_exigencia_requerimento_inicial' cliente.cpf requerimento.id %}" class="btn btn-danger">{% bs_icon 'file-x' %}</a>
-                            </tr>
-                            {% endfor %}
+                            {% if exigencias %}
+                                {% for exigencia in exigencias %}
+                                <tr>
+                                    <td>{{ exigencia.data|date:"d/m/Y" }}</td>
+                                    <td>{{ exigencia.natureza }}</td>
+                                    <td>{{ exigencia.estado }}</td>
+                                    <td >
+                                        <a href="{% url 'atualizar_exigencia_requerimento_inicial' cliente.cpf requerimento.id exigencia.id %}" class="btn btn-warning">{% bs_icon 'pencil-square' %}</a>
+                                        <a href="{% url 'excluir_exigencia_requerimento_inicial' cliente.cpf requerimento.id exigencia.id %}" class="btn btn-danger">{% bs_icon 'file-x' %}</a>
+                                </tr>
+                                {% endfor %}
+                            {% endif %}
                         {% elif requerimento.get_class_name == 'RequerimentoRecurso' %}
-                            {% for exigencia in exigencias_requerimento %}
-                            <tr>
-                                <td>{{ exigencia.data|date:"d/m/Y" }}</td>
-                                <td>{{ exigencia.natureza }}</td>
-                                <td>{{ exigencia.estado }}</td>
-                                <td >
-                                    <a href="{% url 'atualizar_exigencia_requerimento_recurso' cliente.cpf requerimento.id %}" class="btn btn-warning">{% bs_icon 'pencil-square' %}</a>
-                                    <a href="{% url 'excluir_exigencia_requerimento_recurso' cliente.cpf requerimento.id %}" class="btn btn-danger">{% bs_icon 'file-x' %}</a>
-                            </tr>
-                            {% endfor %}
+                            {% if exigencias %}    
+                                {% for exigencia in exigencias_requerimento %}
+                                    <tr>
+                                        <td>{{ exigencia.data|date:"d/m/Y" }}</td>
+                                        <td>{{ exigencia.natureza }}</td>
+                                        <td>{{ exigencia.estado }}</td>
+                                        <td >
+                                            <a href="{% url 'atualizar_exigencia_requerimento_recurso' cliente.cpf requerimento.id exigencia.id %}" class="btn btn-warning">{% bs_icon 'pencil-square' %}</a>
+                                            <a href="{% url 'excluir_exigencia_requerimento_recurso' cliente.cpf requerimento.id exigencia.id %}" class="btn btn-danger">{% bs_icon 'file-x' %}</a>
+                                    </tr>
+                                {% endfor %}
+                            {% endif %}
                         {% endif %}
                         </tbody>
                     </table>
@@ -160,6 +164,7 @@
                           </thead>
                           <tbody>
                           {% if requerimento.get_class_name == 'RequerimentoInicial' %}
+                            {% if historico_mudancas_de_estado %}
                               {% for mudanca_estado in historico_mudancas_de_estado %}
                               <tr>
                                   <td>{{ mudanca_estado.data_mudanca|date:"d/m/Y" }}</td>
@@ -171,6 +176,21 @@
                                     </td>
                               </tr>
                               {% endfor %}
+                              {% endif %}
+                          {% elif requerimento.get_class_name == 'RequerimentoRecurso' %}
+                            {% if historico_mudancas_de_estado %}
+                              {% for mudanca_estado in historico_mudancas_de_estado %}
+                              <tr>
+                                  <td>{{ mudanca_estado.data_mudanca|date:"d/m/Y" }}</td>
+                                  <td>{{ mudanca_estado.estado_anterior }}</td>
+                                  <td>{{ mudanca_estado.estado_novo }}</td>
+                                  <td>{{ mudanca_estado.observacao }}</td>
+                                  <td>
+                                      <a href="{% url 'excluir_mudanca_estado_requerimento_recurso' cliente.cpf requerimento.id mudanca_estado.id %}" class="btn btn-danger">{% bs_icon 'file-x' %}</a>
+                                    </td>
+                              </tr>
+                              {% endfor %}
+                            {% endif %}
                           {% endif %}
                           </tbody>
                       </table>

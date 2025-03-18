@@ -56,6 +56,7 @@ class TestModels(TestCase):
         # Create Natureza and EstadoExigencia instances
         self.natureza = Natureza.objects.create(nome="Documentacao")
         self.estado_exigencia = EstadoExigencia.objects.create(nome="em análise")
+        
         # Create an ExigenciaRequerimentoInicial instance
         self.exigencia_inicial = ExigenciaRequerimentoInicial.objects.create(
             requerimento=self.requerimento_inicial,
@@ -72,14 +73,6 @@ class TestModels(TestCase):
         )
         # Create updated EstadoRequerimentoInicial for historico change
         self.estado_inicial_updated = EstadoRequerimentoInicial.objects.create(nome="concluído deferido")
-        # Create HistoricoMudancaEstadoRequerimentoInicial instance
-        self.historico = HistoricoMudancaEstadoRequerimentoInicial.objects.create(
-            requerimento=self.requerimento_inicial,
-            estado_anterior=self.estado_inicial,
-            estado_novo=self.estado_inicial_updated,
-            observacao="Teste mudança",
-            data_mudanca=timezone.now(),
-        )
 
     def test_servico_str(self):
         self.assertEqual(str(self.servico), "Teste Servico")
@@ -134,9 +127,17 @@ class TestModels(TestCase):
         self.assertEqual(str(self.exigencia_inicial), expected)
 
     def test_historico_str(self):
+        # Create HistoricoMudancaEstadoRequerimentoInicial instance
+        historico = HistoricoMudancaEstadoRequerimentoInicial.objects.create(
+            requerimento=self.requerimento_inicial,
+            estado_anterior=self.estado_inicial,
+            estado_novo=self.estado_inicial_updated,
+            observacao="Teste mudança",
+            data_mudanca=timezone.now(),
+        )
         expected = (
             f"{self.requerimento_inicial.protocolo} do estado "
             f"{self.estado_inicial.nome} para {self.estado_inicial_updated.nome} em "
             f"{self.historico.data_mudanca}"
         )
-        self.assertEqual(str(self.historico), expected)
+        self.assertEqual(str(historico), expected)

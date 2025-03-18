@@ -451,10 +451,15 @@ class ExigenciaRequerimentoInicialUpdateView(UpdateView):
         return context
 
     def get_object(self, queryset=None):
-        obj = super().get_object(queryset)
-        if obj.is_deleted:
-            raise Http404("Requerimento não encontrado")
-        return obj
+        cpf = self.kwargs.get("cpf")
+        pk = self.kwargs.get("pk")
+        exigencia_pk = self.kwargs.get("exigencia_pk")
+        return get_object_or_404(
+            ExigenciaRequerimentoInicial,
+            id=exigencia_pk,
+            requerimento__id=pk,
+            requerimento__requerente_titular__cpf=cpf
+        )
 
 
 @method_decorator(login_required(login_url="login"), name="dispatch")
@@ -486,10 +491,15 @@ class ExigenciaRequerimentoRecursoUpdateView(UpdateView):
         return context
 
     def get_object(self, queryset=None):
-        obj = super().get_object(queryset)
-        if obj.is_deleted:
-            raise Http404("Requerimento não encontrado")
-        return obj
+        cpf = self.kwargs.get("cpf")
+        pk = self.kwargs.get("pk")
+        exigencia_pk = self.kwargs.get("exigencia_pk")
+        return get_object_or_404(
+            ExigenciaRequerimentoRecurso,
+            id=exigencia_pk,
+            requerimento__id=pk,
+            requerimento__requerente_titular__cpf=cpf
+        )
 
 
 @method_decorator(login_required(login_url="login"), name="dispatch")
@@ -516,10 +526,15 @@ class ExigenciaRequerimentoInicialDeleteView(DeleteView):
         )
 
     def get_object(self, queryset=None):
-        obj = super().get_object(queryset)
-        if obj.is_deleted:
-            raise Http404("Requerimento não encontrado")
-        return obj
+        cpf = self.kwargs.get("cpf")
+        pk = self.kwargs.get("pk")
+        exigencia_pk = self.kwargs.get("exigencia_pk")
+        return get_object_or_404(
+            ExigenciaRequerimentoInicial,
+            id=exigencia_pk,
+            requerimento__id=pk,
+            requerimento__requerente_titular__cpf=cpf
+        )
 
 
 @method_decorator(login_required(login_url="login"), name="dispatch")
@@ -543,11 +558,15 @@ class ExigenciaRequerimentoRecursoDeleteView(DeleteView):
         return reverse_lazy("requerimento_recurso", kwargs={"cpf":self.kwargs["cpf"],"pk": self.kwargs["pk"]})
     
     def get_object(self, queryset=None):
-        obj = super().get_object(queryset)
-        if obj.is_deleted:
-            raise Http404("Requerimento não encontrado")
-        return obj
-    
+        cpf = self.kwargs.get("cpf")
+        pk = self.kwargs.get("pk")
+        exigencia_pk = self.kwargs.get("exigencia_pk")
+        return get_object_or_404(
+            ExigenciaRequerimentoRecurso,
+            id=exigencia_pk,
+            requerimento__id=pk,
+            requerimento__requerente_titular__cpf=cpf
+        )    
 @method_decorator(login_required(login_url='login'), name='dispatch')
 class RequerimentoInicialCienciaView(UpdateView):
     model = RequerimentoInicial
@@ -631,7 +650,12 @@ class MudancaEstadoRequerimentoInicialDeleteView(DeleteView):
         return reverse_lazy("requerimento_inicial", kwargs={"cpf":self.kwargs["cpf"],"pk": self.kwargs["pk"]})
     
     def get_object(self, queryset=None):
-        obj = super().get_object(queryset)
-        if obj.is_deleted:
-            raise Http404("Requerimento não encontrado")
-        return obj
+        cpf = self.kwargs.get("cpf")
+        pk = self.kwargs.get("pk")
+        hist_pk = self.kwargs.get("hist_pk")
+        return get_object_or_404(
+            HistoricoMudancaEstadoRequerimentoInicial,
+            id=hist_pk,
+            requerimento__id=pk,
+            requerimento__requerente_titular__cpf=cpf
+        )
