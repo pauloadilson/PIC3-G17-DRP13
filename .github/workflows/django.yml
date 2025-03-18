@@ -26,5 +26,25 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     - name: Run Tests
+      env:
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        DEBUG: ${{ secrets.DEBUG }}
+        ALLOWED_HOSTS: ${{ secrets.ALLOWED_HOSTS }}
+        DATABASE_ENGINE: ${{ secrets.DATABASE_ENGINE }}
+        DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+        DATABASE_USER: ${{ secrets.DATABASE_USER }}
+        DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+        DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+        DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        LOCAL_SERVE_MEDIA_FILES: ${{ secrets.LOCAL_SERVE_MEDIA_FILES }}
+        MICROSOFT_AUTH_CLIENT_ID: ${{ secrets.MICROSOFT_AUTH_CLIENT_ID }}
+        MICROSOFT_AUTH_CLIENT_SECRET: ${{ secrets.MICROSOFT_AUTH_CLIENT_SECRET }}
+        MICROSOFT_AUTH_TENANT_ID: ${{ secrets.MICROSOFT_AUTH_TENANT_ID }}
+        MICROSOFT_AUTH_REDIRECT_URI: ${{ secrets.MICROSOFT_AUTH_REDIRECT_URI }}
+        MICROSOFT_AUTH_CLIENT_EMAIL: ${{ secrets.MICROSOFT_AUTH_CLIENT_EMAIL }}
+        MICROSOFT_AUTH_SCOPES: ${{ secrets.MICROSOFT_AUTH_SCOPES }}
+        DJANGO_SETTINGS_MODULE: ${{ secrets.DJANGO_SETTINGS_MODULE }}
+        SESSION_COOKIE_SECURE: ${{ secrets.SESSION_COOKIE_SECURE }}
       run: |
         python manage.py test
