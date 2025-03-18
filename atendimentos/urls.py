@@ -1,11 +1,15 @@
 from django.urls import path
 from django.urls import path, include
 from atendimentos.views import (
+    AtendimentoCreateListAPIView,
     AtendimentoCreateView,
     AtendimentoDeleteView,
     AtendimentoDetailView,
+    AtendimentoRetrieveUpdateDestroyAPIView,
     AtendimentoUpdateView,
     AtendimentosListView,
+    
+    
 )
 
 urlpatterns = [
@@ -16,5 +20,9 @@ urlpatterns = [
                 path("<str:cpf>/<int:pk>", AtendimentoDetailView.as_view(), name="atendimento"),
                 path("<str:cpf>/<int:pk>/atualizar", AtendimentoUpdateView.as_view(), name="atualizar_atendimento"),
                 path("<str:cpf>/<int:pk>/excluir", AtendimentoDeleteView.as_view(), name="excluir_atendimento"),
+    ])),
+        path('api/v1/atendimento/', include ([
+            path("", AtendimentoCreateListAPIView.as_view(), name='atendimento-create-list'),
+            path("<int:pk>", AtendimentoRetrieveUpdateDestroyAPIView.as_view(), name='atendimento-detail-update-delete'),
     ])),
 ]

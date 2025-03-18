@@ -35,6 +35,12 @@ from django.shortcuts import get_object_or_404, redirect
 from itertools import chain
 from django.utils import timezone
 
+from requerimentos.serializers import (
+    RequerimentoInicialSerializer, 
+)
+from rest_framework.permissions import IsAuthenticated
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView
 
 
 @method_decorator(login_required(login_url="login"), name="dispatch")
@@ -659,3 +665,14 @@ class MudancaEstadoRequerimentoInicialDeleteView(DeleteView):
             requerimento__id=pk,
             requerimento__requerente_titular__cpf=cpf
         )
+        
+class RequerimentoInicialCreateListAPIView(ListCreateAPIView):
+    permission_classes = (IsAuthenticated,)
+    queryset = RequerimentoInicial.objects.all()
+    serializer_class = RequerimentoInicialSerializer
+
+    def get_queryset(self):
+        return RequerimentoInicial.objects.filter(is_deleted=False)
+    
+    def perform_create(self, serializer):
+        serializer.save()

@@ -46,11 +46,13 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "clientes.apps.ClientesConfig",
     "django_bootstrap5",
     "crispy_forms",
     "crispy_bootstrap5",
     "django_bootstrap_icons",
+    'rest_framework',
+    'rest_framework_simplejwt',
+    "clientes",
     "login",
     "agenda",
     "requerimentos",
@@ -176,3 +178,9 @@ MICROSOFT_AUTH_REDIRECT_URI=os.environ.get('MICROSOFT_AUTH_REDIRECT_URI')
 MICROSOFT_AUTH_CLIENT_EMAIL=os.environ.get('MICROSOFT_AUTH_CLIENT_EMAIL')
 MICROSOFT_AUTH_LOGIN_TYPE = 'ma' # 'ma' para contas Microsoft
 MICROSOFT_AUTH_SCOPES = os.environ.get('MICROSOFT_AUTH_SCOPES').split(',')
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
