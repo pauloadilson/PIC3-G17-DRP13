@@ -52,7 +52,7 @@ class TestRequerimentoViews(TransactionTestCase):
         # Create RequerimentoInicial and RequerimentoRecurso objects for detail/update/delete views
         self.protocolo_inicial = generate_unique_protocolo()
         self.requerimento_inicial = RequerimentoInicial.objects.create(
-            protocolo=self.protocolo,
+            protocolo=self.protocolo_inicial,
             NB="NBINICIAL",
             requerente_titular=self.cliente,
             servico=self.servico,
