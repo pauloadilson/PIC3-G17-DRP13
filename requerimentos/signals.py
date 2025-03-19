@@ -9,12 +9,12 @@ from requerimentos.models import HistoricoMudancaEstadoRequerimentoInicial, Requ
 def registrar_mudanca_estado_requerimento_inicial(sender, instance, created, **kwargs):
     requerimento_inicial = instance.requerimento
     if instance.requerimento.get_class_name() == 'RequerimentoInicial':
-        print('Recebendo sinal de mudança de estado de requerimento inicial')
+        print('\nRecebendo sinal de mudança de estado de requerimento inicial')
+        print(f'Estado anterior do requerimento inicial: {requerimento_inicial.estado}.' )
         requerimento_inicial.estado = instance.estado_novo
         requerimento_inicial.save()
         print('Estado do requerimento inicial atualizado')
-        print(f'Estado atual do requerimento inicial: {requerimento_inicial.estado}.' )
-        print(f'Estado novo do requerimento inicial: {instance.estado_novo}')
+        print(f'Estado novo do requerimento inicial: {requerimento_inicial.estado}')
     if requerimento_inicial.estado.nome == 'concluído indeferido':
         print('Recebendo sinal de novo estado concluído indeferido')
         # Criando evento Prazo para recurso indeferido

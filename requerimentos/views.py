@@ -175,12 +175,7 @@ class RequerimentoInicialDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super(RequerimentoInicialDetailView, self).get_context_data(**kwargs)
 
-        cliente_id = self.object.requerente_titular.cpf
-        cliente = Cliente.objects.filter(is_deleted=False).filter(
-            cpf__icontains=cliente_id
-        )[
-            0
-        ]  # .order_by('nome') '-nome' para ordem decrescente
+        cliente = self.object.requerente_titular
         exigencias = self.object.requerimento_exigencia.filter(is_deleted=False).filter(requerimento__id=self.object.id)
         historico_mudancas_de_estado = self.object.historico_estado_requerimento.filter(is_deleted=False).filter(requerimento__id=self.object.id)
         qtde_exigencias = self.object.total_exigencias
@@ -215,20 +210,17 @@ class RequerimentoRecursoDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super(RequerimentoRecursoDetailView, self).get_context_data(**kwargs)
 
-        cliente_id = self.object.requerente_titular.cpf
-        cliente = Cliente.objects.filter(is_deleted=False).filter(
-            cpf__icontains=cliente_id
-        )[
-            0
-        ]  # .order_by('nome') '-nome' para ordem decrescente
-        exigencias_requerimento = self.object.requerimento_exigencia.filter(
+        cliente = self.object.requerente_titular
+        exigencias = self.object.requerimento_exigencia.filter(
             is_deleted=False
         ).filter(requerimento__id=self.object.id)
+        historico_mudancas_de_estado = [] # implementar self.object.historico_estado_requerimento.filter(is_deleted=False).filter(requerimento__id=self.object.id)
         qtde_instancias_filhas = self.object.total_exigencias
 
         context["title"] = self.title
         context["cliente"] = cliente
-        context["exigencias_requerimento"] = exigencias_requerimento
+        context["exigencias_requerimento"] = exigencias
+        context["historico_mudancas_de_estado"] = historico_mudancas_de_estado
         context["qtde_instancias_filhas"] = qtde_instancias_filhas
         return context
 
@@ -465,10 +457,15 @@ class ExigenciaRequerimentoInicialUpdateView(UpdateView):
         return context
 
     def get_object(self, queryset=None):
-        obj = super().get_object(queryset)
-        if obj.is_deleted:
-            raise Http404("Requerimento não encontrado")
-        return obj
+        cpf = self.kwargs.get("cpf")
+        pk = self.kwargs.get("pk")
+        exigencia_pk = self.kwargs.get("exigencia_pk")
+        return get_object_or_404(
+            ExigenciaRequerimentoInicial,
+            id=exigencia_pk,
+            requerimento__id=pk,
+            requerimento__requerente_titular__cpf=cpf
+        )
 
 
 @method_decorator(login_required(login_url="login"), name="dispatch")
@@ -500,10 +497,15 @@ class ExigenciaRequerimentoRecursoUpdateView(UpdateView):
         return context
 
     def get_object(self, queryset=None):
-        obj = super().get_object(queryset)
-        if obj.is_deleted:
-            raise Http404("Requerimento não encontrado")
-        return obj
+        cpf = self.kwargs.get("cpf")
+        pk = self.kwargs.get("pk")
+        exigencia_pk = self.kwargs.get("exigencia_pk")
+        return get_object_or_404(
+            ExigenciaRequerimentoRecurso,
+            id=exigencia_pk,
+            requerimento__id=pk,
+            requerimento__requerente_titular__cpf=cpf
+        )
 
 
 @method_decorator(login_required(login_url="login"), name="dispatch")
@@ -530,10 +532,15 @@ class ExigenciaRequerimentoInicialDeleteView(DeleteView):
         )
 
     def get_object(self, queryset=None):
-        obj = super().get_object(queryset)
-        if obj.is_deleted:
-            raise Http404("Requerimento não encontrado")
-        return obj
+        cpf = self.kwargs.get("cpf")
+        pk = self.kwargs.get("pk")
+        exigencia_pk = self.kwargs.get("exigencia_pk")
+        return get_object_or_404(
+            ExigenciaRequerimentoInicial,
+            id=exigencia_pk,
+            requerimento__id=pk,
+            requerimento__requerente_titular__cpf=cpf
+        )
 
 
 @method_decorator(login_required(login_url="login"), name="dispatch")
@@ -557,11 +564,15 @@ class ExigenciaRequerimentoRecursoDeleteView(DeleteView):
         return reverse_lazy("requerimento_recurso", kwargs={"cpf":self.kwargs["cpf"],"pk": self.kwargs["pk"]})
     
     def get_object(self, queryset=None):
-        obj = super().get_object(queryset)
-        if obj.is_deleted:
-            raise Http404("Requerimento não encontrado")
-        return obj
-    
+        cpf = self.kwargs.get("cpf")
+        pk = self.kwargs.get("pk")
+        exigencia_pk = self.kwargs.get("exigencia_pk")
+        return get_object_or_404(
+            ExigenciaRequerimentoRecurso,
+            id=exigencia_pk,
+            requerimento__id=pk,
+            requerimento__requerente_titular__cpf=cpf
+        )    
 @method_decorator(login_required(login_url='login'), name='dispatch')
 class RequerimentoInicialCienciaView(UpdateView):
     model = RequerimentoInicial
@@ -630,6 +641,8 @@ class MudancaEstadoRequerimentoInicialDeleteView(DeleteView):
     template_name = "delete.html"
     title = "Excluindo Mudança de Estado do Requerimento"
     tipo_objeto = "a mudança de estado do requerimento"
+    slug_field = "hist_pk"
+    slug_url_kwarg = "hist_pk"
 
     def get_context_data(self, **kwargs):
         context = super(MudancaEstadoRequerimentoInicialDeleteView, self).get_context_data(**kwargs)
@@ -643,11 +656,16 @@ class MudancaEstadoRequerimentoInicialDeleteView(DeleteView):
         return reverse_lazy("requerimento_inicial", kwargs={"cpf":self.kwargs["cpf"],"pk": self.kwargs["pk"]})
     
     def get_object(self, queryset=None):
-        obj = super().get_object(queryset)
-        if obj.is_deleted:
-            raise Http404("Requerimento não encontrado")
-        return obj
-
+        cpf = self.kwargs.get("cpf")
+        pk = self.kwargs.get("pk")
+        hist_pk = self.kwargs.get("hist_pk")
+        return get_object_or_404(
+            HistoricoMudancaEstadoRequerimentoInicial,
+            id=hist_pk,
+            requerimento__id=pk,
+            requerimento__requerente_titular__cpf=cpf
+        )
+        
 class RequerimentoInicialCreateListAPIView(ListCreateAPIView):
     permission_classes = (IsAuthenticated,)
     queryset = RequerimentoInicial.objects.all()
