@@ -1,8 +1,6 @@
-from django.test import TestCase, Client, RequestFactory
+from django.test import TestCase, Client
 from django.urls import reverse
-import json
 from django.contrib.auth.models import User
-
 
 class TestViews(TestCase):
     

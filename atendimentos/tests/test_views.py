@@ -1,19 +1,24 @@
-from django.test import TestCase
+from django.test import TransactionTestCase
+import uuid
 from django.urls import reverse, resolve
 from django.utils import timezone
 from django.contrib.auth.models import User
 from clientes.models import Cliente
 from atendimentos.models import Atendimento
 
-class TestAtendimentoViews(TestCase):
+def generate_unique_cpf():
+    return str(uuid.uuid4().int)[:11]
+
+class TestAtendimentoViews(TransactionTestCase):
     def setUp(self):
         self.user = User.objects.create(username="testuser")
         self.user.set_password("secretkey")
         self.user.save()
         self.client.login(username="testuser", password="secretkey")
         
+        self.cpf = generate_unique_cpf()
         self.cliente = Cliente.objects.create(
-            cpf="12345678901",
+            cpf=self.cpf,
             nome="Fulano de Tal",
             data_nascimento="1981-01-21",
             telefone_whatsapp="18991234567",

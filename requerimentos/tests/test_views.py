@@ -1,4 +1,5 @@
-from django.test import TestCase
+from django.test import TransactionTestCase
+import uuid
 from django.urls import reverse
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -16,16 +17,23 @@ from requerimentos.models import (
     ExigenciaRequerimentoRecurso,
     HistoricoMudancaEstadoRequerimentoInicial,
 )
+
+def generate_unique_cpf():
+    return str(uuid.uuid4().int)[:11]
+
+def generate_unique_protocolo():
+    return str(uuid.uuid4().int)[:15]
   
-class TestRequerimentoViews(TestCase):
+class TestRequerimentoViews(TransactionTestCase):
     def setUp(self):
         # Create and login a dummy user
         self.user = User.objects.create_user(username="testuser", password="testpass")
         self.client.force_login(self.user)
   
         # Create a Cliente instance for testing
+        self.cpf = generate_unique_cpf()
         self.cliente = Cliente.objects.create(
-            cpf="11122233344",
+            cpf=self.cpf,
             nome="Teste Cliente",
             data_nascimento="1990-01-01",
             telefone_whatsapp="1234567890",
@@ -42,16 +50,18 @@ class TestRequerimentoViews(TestCase):
         self.estado_recurso = EstadoRequerimentoRecurso.objects.create(nome="em análise na junta")
   
         # Create RequerimentoInicial and RequerimentoRecurso objects for detail/update/delete views
+        self.protocolo_inicial = generate_unique_protocolo()
         self.requerimento_inicial = RequerimentoInicial.objects.create(
-            protocolo="PROTOINICIAL",
+            protocolo=self.protocolo,
             NB="NBINICIAL",
             requerente_titular=self.cliente,
             servico=self.servico,
             data="2021-01-01",
             estado=self.estado_inicial,
         )
+        self.protocolo_recurso = generate_unique_protocolo()
         self.requerimento_recurso = RequerimentoRecurso.objects.create(
-            protocolo="PROTORECUSO",
+            protocolo=self.protocolo_recurso,
             NB="NBRECUSO",
             requerente_titular=self.cliente,
             servico=self.servico,

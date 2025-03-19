@@ -1,4 +1,5 @@
-from django.test import TestCase
+from django.test import TransactionTestCase
+import uuid
 from django.urls import reverse, resolve
 from django.utils import timezone
 
@@ -15,11 +16,19 @@ from requerimentos.models import (
     RequerimentoRecurso,
     ExigenciaRequerimentoRecurso,
 )
-class TestUrls(TestCase):
+
+def generate_unique_cpf():
+    return str(uuid.uuid4().int)[:11]
+
+def generate_unique_protocolo():
+    return str(uuid.uuid4().int)[:15]
+
+class TestUrls(TransactionTestCase):
     def setUp(self) -> None:
         # Common objects
+        self.cpf = generate_unique_cpf()
         self.cliente = Cliente.objects.create(
-            cpf="11122233344",
+            cpf=self.cpf,
             nome="Teste Cliente",
             data_nascimento="1990-01-01",
             telefone_whatsapp="1234567890",
@@ -33,9 +42,10 @@ class TestUrls(TestCase):
         self.estado_inicial = EstadoRequerimentoInicial.objects.create(
             nome="em análise"
         )
+        self.protocolo_inicial = generate_unique_protocolo()
         self.requerimento_inicial = RequerimentoInicial.objects.create(
             requerente_titular=self.cliente,
-            protocolo="123456123456123456",
+            protocolo=self.protocolo_inicial,
             NB="456123456123456123",
             servico=self.servico,
             data="2021-01-01",
@@ -46,9 +56,10 @@ class TestUrls(TestCase):
         self.estado_recurso = EstadoRequerimentoRecurso.objects.create(
             nome="em análise na junta"
         )
+        self.protocolo_recurso = generate_unique_protocolo()
         self.requerimento_recurso = RequerimentoRecurso.objects.create(
             requerente_titular=self.cliente,
-            protocolo="987654321098765432",
+            protocolo=self.protocolo_recurso,
             NB="321098765432109876",
             servico=self.servico,
             data="2021-02-01",

@@ -1,4 +1,5 @@
-from django.test import TestCase
+from django.test import TransactionTestCase
+import uuid
 from django.utils import timezone
 from clientes.models import Cliente
 
@@ -15,11 +16,18 @@ from requerimentos.models import (
     HistoricoMudancaEstadoRequerimentoInicial,
 )
 
-class TestModels(TestCase):
+def generate_unique_cpf():
+    return str(uuid.uuid4().int)[:11]
+
+def generate_unique_protocolo():
+    return str(uuid.uuid4().int)[:15]
+
+class TestModels(TransactionTestCase):
     def setUp(self):
+        self.cpf = generate_unique_cpf()
         # Create a common Cliente instance
         self.cliente = Cliente.objects.create(
-            cpf="11122233344",
+            cpf=self.cpf,
             nome="Teste Cliente",
             data_nascimento="1990-01-01",
             telefone_whatsapp="1234567890",
@@ -36,8 +44,9 @@ class TestModels(TestCase):
             self.estado_recurso = EstadoRequerimentoRecurso.objects.create(nome=estado_recurso_choice[0][0])
 
         # Create RequerimentoInicial instance
+        self.protocolo_inicial = generate_unique_protocolo()
         self.requerimento_inicial = RequerimentoInicial.objects.create(
-            protocolo="PROTO123",
+            protocolo=self.protocolo_inicial,
             NB="NB123",
             requerente_titular=self.cliente,
             servico=self.servico,
@@ -45,8 +54,9 @@ class TestModels(TestCase):
             estado=self.estado_inicial,
         )
         # Create RequerimentoRecurso instance
+        self.protocolo_recurso = generate_unique_protocolo()
         self.requerimento_recurso = RequerimentoRecurso.objects.create(
-            protocolo="PROTO456",
+            protocolo=self.protocolo_recurso,
             NB="NB456",
             requerente_titular=self.cliente,
             servico=self.servico,

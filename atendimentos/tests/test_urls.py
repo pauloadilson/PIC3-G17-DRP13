@@ -1,4 +1,5 @@
-from django.test import TestCase
+from django.test import TransactionTestCase
+import uuid
 from django.urls import reverse, resolve
 from django.utils import timezone
 from django.contrib.auth.models import User
@@ -12,10 +13,14 @@ from atendimentos.views import (
     AtendimentoDeleteView,
 )
 
-class TestAtendimentoUrls(TestCase):
+def generate_unique_cpf():
+    return str(uuid.uuid4().int)[:11]
+
+class TestAtendimentoUrls(TransactionTestCase):
     def setUp(self):
+        self.cpf = generate_unique_cpf()
         self.cliente = Cliente.objects.create(
-            cpf="12345678901",
+            cpf=self.cpf,
             nome="Fulano de Tal",
             data_nascimento="1981-01-21",
             telefone_whatsapp="18991234567",
