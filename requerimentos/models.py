@@ -68,7 +68,8 @@ class EstadoRequerimentoRecurso(models.Model):
     ESTADOS_RECURSOS = [
         ('em análise na junta', 'Em Análise na Junta'),
         ('em análise no conselho', 'Em Análise no Conselho'),
-        ('concluído', 'Concluído'),
+        ('concluído deferido', 'Concluído Deferido'),
+        ('concluído indeferido', 'Concluído Indeferido'),
     ]
 
     id = models.AutoField(primary_key=True) # ID do estado
