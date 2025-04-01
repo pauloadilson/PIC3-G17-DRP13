@@ -1,13 +1,10 @@
 from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
 from django.contrib.auth.forms import AuthenticationForm
-
-
 from django.http import HttpResponseRedirect
-from django.urls import reverse
 from django.views import View
-from microsoft_authentication.auth_helper import get_sign_in_flow, get_token_from_code, store_user, remove_user_and_token, get_token
-from microsoft_authentication.graph_helper import *
+from microsoft_authentication.auth_helper import get_sign_in_flow, get_token_from_code, store_user, remove_user_and_token
+from microsoft_authentication.graph_helper import get_user
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -22,22 +19,24 @@ class CustomLoginView(LoginView):
 
     def get_success_url(self):
         return self.success_url
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = self.title
         return context
-    
+
+
 @method_decorator(login_required(login_url='login'), name='dispatch')
 def initialize_context(request):
     context = {}
     error = request.session.pop('flash_error', None)
-    if error != None:
-      context['errors'] = []
+    if error is not None:
+        context['errors'] = []
     context['errors'].append(error)
     # Check for user in the session
-    context['user'] = request.session.get('user',{'is_authenticated': False})
+    context['user'] = request.session.get('user', {'is_authenticated': False})
     return context
+
 
 @method_decorator(login_required(login_url='login'), name='dispatch')
 class SignInView(View):
@@ -52,6 +51,7 @@ class SignInView(View):
         # Redirect to the Azure sign-in page
         return HttpResponseRedirect(flow['auth_uri'])
 
+
 class SignOutView(View):
     success_url = reverse_lazy('index')
 
@@ -60,6 +60,7 @@ class SignOutView(View):
         # Clear out the user and token
         remove_user_and_token(self.request)
         return response
+
 
 @method_decorator(login_required(login_url='login'), name='dispatch')
 class CallbackView(View):

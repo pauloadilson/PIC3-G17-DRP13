@@ -1,8 +1,8 @@
 from django.test import TestCase
 from django.utils import timezone
 from atendimentos.forms import AtendimentoModelForm  # Assumindo que exista este form
-from atendimentos.models import Atendimento
 from clientes.models import Cliente
+
 
 class TestAtendimentoForms(TestCase):
     def setUp(self):

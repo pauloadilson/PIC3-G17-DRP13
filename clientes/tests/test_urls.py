@@ -5,11 +5,14 @@ from django.urls import reverse, resolve
 from clientes.models import Cliente
 from requerimentos.models import EstadoRequerimentoInicial, RequerimentoInicial, Servico
 
+
 def generate_unique_cpf():
     return str(uuid.uuid4().int)[:11]
 
+
 def generate_unique_protocolo():
     return str(uuid.uuid4().int)[:15]
+
 
 class TestUrls(TransactionTestCase):
     def setUp(self) -> None:
@@ -34,7 +37,7 @@ class TestUrls(TransactionTestCase):
             NB="456123456123456123",
             servico=self.servico1,
             data="2021-01-01",
-            estado= self.estado1,
+            estado=self.estado1,
         )
 
     def test_index_url_resolves(self):
@@ -52,4 +55,3 @@ class TestUrls(TransactionTestCase):
     def test_cliente_detail_url_resolves(self):
         url = reverse("cliente", kwargs={'cpf': self.cliente1.cpf})
         self.assertEqual(resolve(url).func.view_class.__name__, "ClienteDetailView")
-        

@@ -1,13 +1,8 @@
-from django.shortcuts import redirect
-from django.http import HttpResponse, JsonResponse
 import requests
-from login.auth_helper import get_token
-from login.graph_helper import graph_url, get_user,  get_calendar_events
-#client = ConfidentialClientApplication(client_id=client_id, client_credential=client_secret)
-#authorization_url = client.get_authorization_request_url(scope)
-#print(authorization_url)
+from microsoft_authentication.auth_helper import get_token
+from microsoft_authentication.graph_helper import graph_url
 
-      
+
 def criar_evento_no_microsoft_graph(evento):
     print('Entrando em criar evento')
     access_token = get_token(requests)

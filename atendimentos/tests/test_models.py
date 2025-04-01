@@ -1,9 +1,8 @@
 from django.test import TestCase
-from django.urls import reverse, resolve
 from django.utils import timezone
-from django.contrib.auth.models import User
 from clientes.models import Cliente
 from atendimentos.models import Atendimento
+
 
 class TestAtendimentoModel(TestCase):
     def setUp(self):
@@ -20,8 +19,7 @@ class TestAtendimentoModel(TestCase):
             descricao="Teste de atendimento",
             observacao="Nenhuma observação"
         )
-    
+
     def test_str_method(self):
         esperado = f'Atendimento: id nº {self.atendimento.id} de {self.cliente.nome}, {self.cliente.cpf}'
         self.assertEqual(str(self.atendimento), esperado)
-

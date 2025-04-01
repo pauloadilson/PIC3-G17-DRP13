@@ -2,7 +2,6 @@ from django.test import TransactionTestCase
 import uuid
 from django.urls import reverse, resolve
 from django.utils import timezone
-from django.contrib.auth.models import User
 from clientes.models import Cliente
 from atendimentos.models import Atendimento
 from atendimentos.views import (
@@ -13,8 +12,10 @@ from atendimentos.views import (
     AtendimentoDeleteView,
 )
 
+
 def generate_unique_cpf():
     return str(uuid.uuid4().int)[:11]
+
 
 class TestAtendimentoUrls(TransactionTestCase):
     def setUp(self):
@@ -52,4 +53,3 @@ class TestAtendimentoUrls(TransactionTestCase):
     def test_atendimento_delete_url_resolves(self):
         url = reverse("excluir_atendimento", kwargs={"cpf": self.cliente.cpf, "pk": self.atendimento.id})
         self.assertEqual(resolve(url).func.view_class, AtendimentoDeleteView)
-        

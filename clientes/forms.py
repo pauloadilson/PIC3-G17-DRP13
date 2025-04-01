@@ -1,9 +1,5 @@
-from typing import Any, Mapping
-from django.utils import timezone
 from django import forms
-from django.forms.renderers import BaseRenderer
-from django.forms.utils import ErrorList
-from clientes.models import Cliente 
+from clientes.models import Cliente
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Field, Button
 from crispy_forms.bootstrap import FormActions
@@ -43,7 +39,6 @@ class ClienteModelForm(forms.ModelForm):
 
     def clean_cpf(self):
         cpf = self.cleaned_data.get("cpf")
-        clientes = Cliente.objects.all()
         if len(cpf) != 11:
             raise forms.ValidationError("CPF deve conter 11 dígitos")
         if (
@@ -55,4 +50,3 @@ class ClienteModelForm(forms.ModelForm):
 
     def save(self, commit=True):
         return super(ClienteModelForm, self).save(commit=commit)
-
