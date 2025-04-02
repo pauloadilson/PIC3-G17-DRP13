@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load bootstrap_icons %}
+{% load custom_filters %}
 
 {% block content %}
 <main class="content mb-5" >
@@ -26,10 +27,10 @@
                 <dd class="col-sm-9">{{ cliente.data_nascimento|date:"d/m/Y"}}</dd>
               
                 <dt class="col-sm-3">WhatsApp</dt>
-                <dd class="col-sm-9">{{ cliente.telefone_whatsapp }}</dd>
+                <dd class="col-sm-9">{{ cliente.telefone_whatsapp|format_phone }}</dd>
               
                 <dt class="col-sm-3">Telefone</dt>
-                <dd class="col-sm-9">{{ cliente.telefone }}</dd>
+                <dd class="col-sm-9">{{ cliente.telefone|format_phone }}</dd>
 
                 <dt class="col-sm-3">Observação sobre telefone</dt>
                 <dd class="col-sm-9">{{ cliente.observacao_telefone }}</dd>

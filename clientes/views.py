@@ -101,11 +101,11 @@ class ClienteDetailView(DetailView):
         context = super(ClienteDetailView, self).get_context_data(**kwargs)
         cliente_id = self.object.cpf
         title = f"Cliente {cliente_id}"
-        requerimentos_cliente = self.object.cliente_titular_requerimento.filter(
+        requerimentos_iniciais = RequerimentoInicial.objects.filter(
             is_deleted=False
-        )
-        recursos_cliente = self.object.cliente_titular_requerimento.filter(
-            is_deleted=False
+        ).filter(requerente_titular__cpf__icontains=cliente_id)
+        recursos = RequerimentoRecurso.objects.filter(is_deleted=False).filter(
+            requerente_titular__cpf__icontains=cliente_id
         )
         atendimentos_cliente = self.object.cliente_atendimento.filter(
             is_deleted=False
@@ -113,8 +113,8 @@ class ClienteDetailView(DetailView):
         qtde_instancias_filhas = self.object.total_requerimentos + self.object.total_atendimentos
 
         context["title"] = title
-        context["requerimentos"] = requerimentos_cliente
-        context["recursos"] = recursos_cliente
+        context["requerimentos"] = requerimentos_iniciais
+        context["recursos"] = recursos
         context["atendimentos"] = atendimentos_cliente
         context["qtde_instancias_filhas"] = qtde_instancias_filhas
         return context

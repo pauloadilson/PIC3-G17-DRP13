@@ -39,6 +39,7 @@ class Requerimento(models.Model):
 class EstadoRequerimentoInicial(models.Model):
     ESTADOS_INICIAIS = [
         ('em análise', 'Em Análise'),
+        ('aguardando cumprimento de exigência', 'Aguardando Cumprimento de Exigência'),
         ('concluído deferido', 'Concluído Deferido'),
         ('concluído indeferido', 'Concluído Indeferido'),
     ]

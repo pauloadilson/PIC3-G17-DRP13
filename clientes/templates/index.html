@@ -58,7 +58,7 @@
             events: [
                 {% for evento in agenda %}
                 {
-                  title: '{{ evento.titulo }}',
+                  title: '{{ evento.tipo|capfirst}}: {{ evento.titulo }}',
                   tipo: '{{ evento.tipo }}',
                   descricao: '{{ evento.descricao }}',
                   start: '{{ evento.data_inicio|date:"Y-m-d\TH:i:s" }}',

@@ -153,7 +153,6 @@ class RequerimentoInicialDetailView(DetailView):
     template_name = "requerimento.html"
     context_object_name = "requerimento"
     title = "Requerimento"
-    paginate_by = 10
 
     cliente_id = None
 
@@ -187,7 +186,6 @@ class RequerimentoRecursoDetailView(DetailView):
     template_name = "requerimento.html"
     context_object_name = "requerimento"
     title = "Recurso"
-    paginate_by = 10
 
     cliente_id = None
 
