@@ -1,6 +1,4 @@
-from datetime import datetime
 from django.http import Http404
-from django.db.models.base import Model as Model
 from django.views.generic import (
     CreateView,
     DetailView,
@@ -12,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from clientes.models import Cliente
 from requerimentos.models import (
-    HistoricoMudancaEstadoRequerimentoInicial, 
+    HistoricoMudancaEstadoRequerimentoInicial,
     Requerimento,
     RequerimentoInicial,
     RequerimentoRecurso,
@@ -22,25 +20,18 @@ from requerimentos.models import (
 from requerimentos.forms import (
     EscolhaTipoRequerimentoForm,
     RequerimentoInicialModelForm,
-    RequerimentoRecursoModelForm,
     MudancaEstadoRequerimentoInicialForm,
-    RequerimentoInicialCienciaForm, 
-    RequerimentoInicialModelForm, 
-    RequerimentoRecursoModelForm, 
+    RequerimentoInicialCienciaForm,
+    RequerimentoRecursoModelForm,
     ExigenciaRequerimentoInicialModelForm,
     ExigenciaRequerimentoRecursoModelForm,
 )
 from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404, redirect
-from itertools import chain
 from django.utils import timezone
-
-from requerimentos.serializers import (
-    RequerimentoInicialSerializer, 
-)
+from requerimentos.serializers import RequerimentoInicialSerializer
 from rest_framework.permissions import IsAuthenticated
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView
+from rest_framework.generics import ListCreateAPIView
 
 
 @method_decorator(login_required(login_url="login"), name="dispatch")
@@ -162,7 +153,6 @@ class RequerimentoInicialDetailView(DetailView):
     template_name = "requerimento.html"
     context_object_name = "requerimento"
     title = "Requerimento"
-    paginate_by = 10
 
     cliente_id = None
 
@@ -182,7 +172,6 @@ class RequerimentoInicialDetailView(DetailView):
         qtde_mudancas_estado = self.object.total_mudancas_estado
         qtde_instancias_filhas = qtde_exigencias + qtde_mudancas_estado
 
-
         context["title"] = self.title
         context["cliente"] = cliente
         context["exigencias"] = exigencias
@@ -197,7 +186,6 @@ class RequerimentoRecursoDetailView(DetailView):
     template_name = "requerimento.html"
     context_object_name = "requerimento"
     title = "Recurso"
-    paginate_by = 10
 
     cliente_id = None
 
@@ -214,7 +202,7 @@ class RequerimentoRecursoDetailView(DetailView):
         exigencias = self.object.requerimento_exigencia.filter(
             is_deleted=False
         ).filter(requerimento__id=self.object.id)
-        historico_mudancas_de_estado = [] # implementar self.object.historico_estado_requerimento.filter(is_deleted=False).filter(requerimento__id=self.object.id)
+        historico_mudancas_de_estado = []  # implementar self.object.historico_estado_requerimento.filter(is_deleted=False).filter(requerimento__id=self.object.id)
         qtde_instancias_filhas = self.object.total_exigencias
 
         context["title"] = self.title
@@ -561,8 +549,8 @@ class ExigenciaRequerimentoRecursoDeleteView(DeleteView):
         return context
 
     def get_success_url(self):
-        return reverse_lazy("requerimento_recurso", kwargs={"cpf":self.kwargs["cpf"],"pk": self.kwargs["pk"]})
-    
+        return reverse_lazy("requerimento_recurso", kwargs={"cpf": self.kwargs["cpf"], "pk": self.kwargs["pk"]})
+
     def get_object(self, queryset=None):
         cpf = self.kwargs.get("cpf")
         pk = self.kwargs.get("pk")
@@ -572,7 +560,9 @@ class ExigenciaRequerimentoRecursoDeleteView(DeleteView):
             id=exigencia_pk,
             requerimento__id=pk,
             requerimento__requerente_titular__cpf=cpf
-        )    
+        )
+
+
 @method_decorator(login_required(login_url='login'), name='dispatch')
 class RequerimentoInicialCienciaView(UpdateView):
     model = RequerimentoInicial
@@ -588,14 +578,14 @@ class RequerimentoInicialCienciaView(UpdateView):
         return obj
 
     def get_success_url(self):
-        return reverse_lazy("requerimento_inicial", kwargs={"cpf":self.kwargs["cpf"],"pk": self.object.id})
+        return reverse_lazy("requerimento_inicial", kwargs={"cpf": self.kwargs["cpf"], "pk": self.object.id})
 
     def get_context_data(self, **kwargs):
         context = super(RequerimentoInicialCienciaView, self).get_context_data(**kwargs)
         context["title"] = self.title
         context["form_title_identificador"] = f'NB nº {self.object.NB}'
         return context
-    
+
     def form_valid(self, form):
         requerimento = form.save(commit=False)
         estado_anterior = requerimento.estado
@@ -608,7 +598,8 @@ class RequerimentoInicialCienciaView(UpdateView):
             observacao=requerimento.observacao
         )
         return super().form_valid(form)
-    
+
+
 @method_decorator(login_required(login_url='login'), name='dispatch')
 class MudancaEstadoRequerimentoInicialCreateView(CreateView):
     model = HistoricoMudancaEstadoRequerimentoInicial
@@ -622,19 +613,20 @@ class MudancaEstadoRequerimentoInicialCreateView(CreateView):
         initial["requerimento"] = RequerimentoInicial.objects.filter(is_deleted=False).get(id=self.kwargs["pk"])
         initial["estado_anterior"] = RequerimentoInicial.objects.filter(is_deleted=False).get(id=self.kwargs["pk"]).estado
         return initial
-    
+
     def form_valid(self, form):
         form.instance.requerimento = RequerimentoInicial.objects.get(id=self.kwargs["pk"])
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse_lazy("requerimento_inicial", kwargs={"cpf":self.kwargs["cpf"],"pk": self.kwargs["pk"]})
+        return reverse_lazy("requerimento_inicial", kwargs={"cpf": self.kwargs["cpf"], "pk": self.kwargs["pk"]})
 
     def get_context_data(self, **kwargs):
         context = super(MudancaEstadoRequerimentoInicialCreateView, self).get_context_data(**kwargs)
         context["title"] = self.title
         return context
-    
+
+
 @method_decorator(login_required(login_url='login'), name='dispatch')
 class MudancaEstadoRequerimentoInicialDeleteView(DeleteView):
     model = HistoricoMudancaEstadoRequerimentoInicial
@@ -651,10 +643,10 @@ class MudancaEstadoRequerimentoInicialDeleteView(DeleteView):
         context["tipo_objeto"] = self.tipo_objeto
         context["qtde_instancias_filhas"] = 0
         return context
-    
+
     def get_success_url(self):
-        return reverse_lazy("requerimento_inicial", kwargs={"cpf":self.kwargs["cpf"],"pk": self.kwargs["pk"]})
-    
+        return reverse_lazy("requerimento_inicial", kwargs={"cpf": self.kwargs["cpf"], "pk": self.kwargs["pk"]})
+
     def get_object(self, queryset=None):
         cpf = self.kwargs.get("cpf")
         pk = self.kwargs.get("pk")
@@ -665,7 +657,8 @@ class MudancaEstadoRequerimentoInicialDeleteView(DeleteView):
             requerimento__id=pk,
             requerimento__requerente_titular__cpf=cpf
         )
-        
+
+
 class RequerimentoInicialCreateListAPIView(ListCreateAPIView):
     permission_classes = (IsAuthenticated,)
     queryset = RequerimentoInicial.objects.all()
@@ -673,6 +666,6 @@ class RequerimentoInicialCreateListAPIView(ListCreateAPIView):
 
     def get_queryset(self):
         return RequerimentoInicial.objects.filter(is_deleted=False)
-    
+
     def perform_create(self, serializer):
         serializer.save()

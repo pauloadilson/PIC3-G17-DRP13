@@ -16,11 +16,14 @@ from requerimentos.models import (
     HistoricoMudancaEstadoRequerimentoInicial,
 )
 
+
 def generate_unique_cpf():
     return str(uuid.uuid4().int)[:11]
 
+
 def generate_unique_protocolo():
     return str(uuid.uuid4().int)[:15]
+
 
 class TestModels(TransactionTestCase):
     def setUp(self):
@@ -66,7 +69,7 @@ class TestModels(TransactionTestCase):
         # Create Natureza and EstadoExigencia instances
         self.natureza = Natureza.objects.create(nome="Documentacao")
         self.estado_exigencia = EstadoExigencia.objects.create(nome="em análise")
-        
+
         # Create an ExigenciaRequerimentoInicial instance
         self.exigencia_inicial = ExigenciaRequerimentoInicial.objects.create(
             requerimento=self.requerimento_inicial,

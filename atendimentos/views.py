@@ -1,35 +1,21 @@
-from datetime import datetime
 from django.http import Http404
-from django.db.models.base import Model as Model
 from django.views.generic import (
-    TemplateView,
     ListView,
     CreateView,
     DetailView,
     UpdateView,
     DeleteView,
 )
-from django.views.generic.edit import FormView
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
-from agenda.models import Evento
 from atendimentos.models import Atendimento
 from clientes.models import Cliente
-from requerimentos.models import (
-    RequerimentoInicial,
-    RequerimentoRecurso,
-)
 from atendimentos.forms import AtendimentoModelForm
 from django.urls import reverse_lazy
-from django.shortcuts import get_object_or_404, redirect
-from itertools import chain
-from django.utils import timezone
-from atendimentos.serializers import (
-    AtendimentoSerializer, 
-)
+from atendimentos.serializers import AtendimentoSerializer
 from rest_framework.permissions import IsAuthenticated
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+
 
 @method_decorator(login_required(login_url="login"), name="dispatch")
 class AtendimentosListView(ListView):
@@ -88,7 +74,7 @@ class AtendimentoDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super(AtendimentoDetailView, self).get_context_data(**kwargs)
-        
+
         cliente = self.object.cliente
         requerimento = self.object.requerimento
 
@@ -134,9 +120,6 @@ class AtendimentoDeleteView(DeleteView):
         return reverse_lazy("atendimentos")
 
 
-
-
-
 class AtendimentoCreateListAPIView(ListCreateAPIView):
     permission_classes = (IsAuthenticated,)
     queryset = Atendimento.objects.all()
@@ -144,18 +127,18 @@ class AtendimentoCreateListAPIView(ListCreateAPIView):
 
     def get_queryset(self):
         return Atendimento.objects.filter(is_deleted=False)
-    
+
     def perform_create(self, serializer):
         serializer.save()
-    
+
+
 class AtendimentoRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     permission_classes = (IsAuthenticated,)
     queryset = Atendimento.objects.all()
     serializer_class = AtendimentoSerializer
-    
+
     def get_queryset(self):
         return Atendimento.objects.filter(is_deleted=False)
-    
+
     def perform_create(self, serializer):
         serializer.save()
-        

@@ -15,21 +15,30 @@ class Migration(migrations.Migration):
             name='EstadoExigencia',
             fields=[
                 ('id', models.AutoField(primary_key=True, serialize=False)),
-                ('nome', models.CharField(choices=[('em análise', 'Em Análise'), ('concluído', 'Concluído')], max_length=100)),
+                ('nome', models.CharField(
+                    choices=[('em análise', 'Em Análise'), ('concluído', 'Concluído')],
+                    max_length=100)),
             ],
         ),
         migrations.CreateModel(
             name='EstadoRequerimentoInicial',
             fields=[
                 ('id', models.AutoField(primary_key=True, serialize=False)),
-                ('nome', models.CharField(choices=[('em análise', 'Em Análise'), ('concluído', 'Concluído')], max_length=100)),
+                ('nome', models.CharField(
+                    choices=[('em análise', 'Em Análise'), ('concluído', 'Concluído')],
+                    max_length=100)),
             ],
         ),
         migrations.CreateModel(
             name='EstadoRequerimentoRecurso',
             fields=[
                 ('id', models.AutoField(primary_key=True, serialize=False)),
-                ('nome', models.CharField(choices=[('em análise na junta', 'Em Análise na Junta'), ('em análise no conselho', 'Em Análise no Conselho'), ('concluído', 'Concluído')], max_length=30)),
+                ('nome', models.CharField(
+                    choices=[
+                        ('em análise na junta', 'Em Análise na Junta'),
+                        ('em análise no conselho', 'Em Análise no Conselho'),
+                        ('concluído', 'Concluído')],
+                    max_length=30)),
             ],
         ),
         migrations.CreateModel(
@@ -38,7 +47,10 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(primary_key=True, serialize=False)),
                 ('data', models.DateField()),
                 ('is_deleted', models.BooleanField(default=False)),
-                ('estado', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='estado_exigencia', to='clientes.estadoexigencia')),
+                ('estado', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT,
+                    related_name='estado_exigencia',
+                    to='clientes.estadoexigencia')),
             ],
         ),
         migrations.CreateModel(
@@ -63,21 +75,36 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='ExigenciaRequerimentoInicial',
             fields=[
-                ('exigencia_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='clientes.exigencia')),
+                ('exigencia_ptr', models.OneToOneField(
+                    auto_created=True,
+                    on_delete=django.db.models.deletion.CASCADE,
+                    parent_link=True,
+                    primary_key=True,
+                    serialize=False,
+                    to='clientes.exigencia')),
             ],
             bases=('clientes.exigencia',),
         ),
         migrations.CreateModel(
             name='ExigenciaRequerimentoRecurso',
             fields=[
-                ('exigencia_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='clientes.exigencia')),
+                ('exigencia_ptr', models.OneToOneField(
+                    auto_created=True,
+                    on_delete=django.db.models.deletion.CASCADE,
+                    parent_link=True,
+                    primary_key=True,
+                    serialize=False,
+                    to='clientes.exigencia')),
             ],
             bases=('clientes.exigencia',),
         ),
         migrations.AddField(
             model_name='exigencia',
             name='natureza',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='natureza_exigencia', to='clientes.natureza'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name='natureza_exigencia',
+                to='clientes.natureza'),
         ),
         migrations.CreateModel(
             name='Requerimento',
@@ -90,16 +117,39 @@ class Migration(migrations.Migration):
                 ('email', models.EmailField(blank=True, max_length=100, null=True)),
                 ('observacao', models.TextField(blank=True, null=True)),
                 ('is_deleted', models.BooleanField(default=False)),
-                ('instituidor', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='cliente_instituidor_requerimento', to='clientes.cliente')),
-                ('requerente_titular', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='cliente_titular_requerimento', to='clientes.cliente')),
-                ('tutor_curador', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='cliente_tutor_curador_requerimento', to='clientes.cliente')),
-                ('servico', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='servico_requerimento', to='clientes.servico')),
+                ('instituidor', models.ForeignKey(
+                    blank=True,
+                    null=True,
+                    on_delete=django.db.models.deletion.PROTECT,
+                    related_name='cliente_instituidor_requerimento',
+                    to='clientes.cliente')),
+                ('requerente_titular', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT,
+                    related_name=(
+                        'cliente_titular_requerimento'
+                    ),
+                    to='clientes.cliente')),
+                ('tutor_curador', models.ForeignKey(
+                    blank=True,
+                    null=True,
+                    on_delete=django.db.models.deletion.PROTECT,
+                    related_name='cliente_tutor_curador_requerimento',
+                    to='clientes.cliente'
+                )),
+                ('servico', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT,
+                    related_name='servico_requerimento',
+                    to='clientes.servico')),
             ],
         ),
         migrations.AddField(
             model_name='exigencia',
             name='requerimento',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='requerimento_exigencia', to='clientes.requerimento'),
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name='requerimento_exigencia',
+                to='clientes.requerimento',
+            ),
         ),
         migrations.CreateModel(
             name='Documento',

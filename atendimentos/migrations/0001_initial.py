@@ -22,8 +22,16 @@ class Migration(migrations.Migration):
                 ('descricao', models.TextField(blank=True, null=True)),
                 ('observacao', models.TextField(blank=True, null=True)),
                 ('is_deleted', models.BooleanField(default=False)),
-                ('cliente', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='cliente_atendimento', to='clientes.cliente')),
-                ('requerimento', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='requerimento_atendimento', to='requerimentos.requerimento')),
+                ('cliente', models.ForeignKey(
+                    on_delete=django.db.models.deletion.PROTECT,
+                    related_name='cliente_atendimento',
+                    to='clientes.cliente')),
+                ('requerimento', models.ForeignKey(
+                    blank=True,
+                    null=True,
+                    on_delete=django.db.models.deletion.PROTECT,
+                    related_name='requerimento_atendimento',
+                    to='requerimentos.requerimento')),
             ],
         ),
     ]

@@ -3,11 +3,10 @@ from rest_framework import serializers
 from atendimentos.models import Atendimento
 
 
-
 class AtendimentoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Atendimento
-        fields = '__all__' 
+        fields = '__all__'
 
     def validate_data(self, value):
         if value > timezone.now():

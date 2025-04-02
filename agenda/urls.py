@@ -1,4 +1,3 @@
-from django.urls import path
 from django.urls import path, include
 from agenda.views import (
     EventoCreateView,
@@ -15,4 +14,3 @@ urlpatterns = [
     ])),
     path("prazos", PrazoView.as_view(), name="prazos"),
 ]
-

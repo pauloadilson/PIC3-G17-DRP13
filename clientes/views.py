@@ -1,11 +1,7 @@
 from datetime import datetime
 from django.http import Http404
-from django.db.models.base import Model as Model
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView, ListAPIView
-from rest_framework.exceptions import NotFound
-from rest_framework.response import Response
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
-from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import (
     TemplateView,
     ListView,
@@ -14,7 +10,6 @@ from django.views.generic import (
     UpdateView,
     DeleteView,
 )
-from django.views.generic.edit import FormView
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from agenda.models import Evento
@@ -23,16 +18,14 @@ from requerimentos.models import (
     RequerimentoInicial,
     RequerimentoRecurso,
 )
-from atendimentos.models import Atendimento
 from clientes.forms import ClienteModelForm
 from django.urls import reverse_lazy
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404
 from itertools import chain
 from django.utils import timezone
 
-from clientes.serializers import (
-    ClienteSerializer, 
-)
+from clientes.serializers import ClienteSerializer
+
 
 class IndexView(TemplateView):
     template_name = "index.html"
@@ -44,10 +37,11 @@ class IndexView(TemplateView):
         hoje_aware = timezone.make_aware(datetime.combine(hoje, datetime.min.time()))
         eventos = Evento.objects.filter(
             data_inicio__gte=hoje_aware,
-            ).order_by('data_inicio')[:5]
+        ).order_by('data_inicio')[:5]
         context["title"] = self.title
         context["agenda"] = eventos
         return context
+
 
 @method_decorator(login_required(login_url="login"), name="dispatch")
 class ClientesListView(ListView):
@@ -107,11 +101,11 @@ class ClienteDetailView(DetailView):
         context = super(ClienteDetailView, self).get_context_data(**kwargs)
         cliente_id = self.object.cpf
         title = f"Cliente {cliente_id}"
-        requerimentos_cliente = self.object.cliente_titular_requerimento.filter(
+        requerimentos_iniciais = RequerimentoInicial.objects.filter(
             is_deleted=False
-        )
-        recursos_cliente = self.object.cliente_titular_requerimento.filter(
-            is_deleted=False
+        ).filter(requerente_titular__cpf__icontains=cliente_id)
+        recursos = RequerimentoRecurso.objects.filter(is_deleted=False).filter(
+            requerente_titular__cpf__icontains=cliente_id
         )
         atendimentos_cliente = self.object.cliente_atendimento.filter(
             is_deleted=False
@@ -119,8 +113,8 @@ class ClienteDetailView(DetailView):
         qtde_instancias_filhas = self.object.total_requerimentos + self.object.total_atendimentos
 
         context["title"] = title
-        context["requerimentos"] = requerimentos_cliente
-        context["recursos"] = recursos_cliente
+        context["requerimentos"] = requerimentos_iniciais
+        context["recursos"] = recursos
         context["atendimentos"] = atendimentos_cliente
         context["qtde_instancias_filhas"] = qtde_instancias_filhas
         return context
@@ -189,6 +183,7 @@ class ClienteDeleteView(DeleteView):
             raise Http404("Cliente não encontrado")
         return obj
 
+
 class ClienteCreateListAPIView(ListCreateAPIView):
     permission_classes = (IsAuthenticated,)
     queryset = Cliente.objects.all()
@@ -196,10 +191,10 @@ class ClienteCreateListAPIView(ListCreateAPIView):
 
     def get_queryset(self):
         return Cliente.objects.filter(is_deleted=False)
-    
 
     def perform_create(self, serializer):
         serializer.save()
+
 
 class ClienteRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     permission_classes = (IsAuthenticated,)
@@ -215,4 +210,3 @@ class ClienteRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     def perform_destroy(self, instance):
         instance.is_deleted = True
         instance.save()
-

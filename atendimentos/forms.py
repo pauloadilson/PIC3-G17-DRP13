@@ -1,8 +1,5 @@
-from typing import Any, Mapping
 from django.utils import timezone
 from django import forms
-from django.forms.renderers import BaseRenderer
-from django.forms.utils import ErrorList
 from atendimentos.models import Atendimento
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Field, Button
@@ -12,7 +9,7 @@ from crispy_forms.bootstrap import FormActions
 class AtendimentoModelForm(forms.ModelForm):
     class Meta:
         model = Atendimento
-        fields = ['data','cliente', 'requerimento','descricao','observacao']
+        fields = ['data', 'cliente', 'requerimento', 'descricao', 'observacao']
 
     def __init__(self, *args, **kwargs):
         super(AtendimentoModelForm, self).__init__(*args, **kwargs)

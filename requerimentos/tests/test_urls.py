@@ -17,11 +17,14 @@ from requerimentos.models import (
     ExigenciaRequerimentoRecurso,
 )
 
+
 def generate_unique_cpf():
     return str(uuid.uuid4().int)[:11]
 
+
 def generate_unique_protocolo():
     return str(uuid.uuid4().int)[:15]
+
 
 class TestUrls(TransactionTestCase):
     def setUp(self) -> None:
@@ -37,7 +40,7 @@ class TestUrls(TransactionTestCase):
         self.servico = Servico.objects.create(
             nome="Aposentadoria por Idade Urbana"
         )
-        
+
         # Objects for requerimento_inicial
         self.estado_inicial = EstadoRequerimentoInicial.objects.create(
             nome="em análise"
@@ -51,7 +54,7 @@ class TestUrls(TransactionTestCase):
             data="2021-01-01",
             estado=self.estado_inicial,
         )
-        
+
         # Objects for requerimento_recurso
         self.estado_recurso = EstadoRequerimentoRecurso.objects.create(
             nome="em análise na junta"
@@ -69,11 +72,10 @@ class TestUrls(TransactionTestCase):
         self.natureza = Natureza.objects.create(nome="Documentação")
         self.estado_exigencia = EstadoExigencia.objects.create(nome="em análise")
 
-
     def test_adicionar_requerimento_inicial_url_resolves(self):
         url = reverse("adicionar_requerimento_inicial", kwargs={'cpf': self.cliente.cpf})
         self.assertEqual(resolve(url).func.view_class.__name__, "RequerimentoInicialCreateView")
-    
+
     def test_requerimento_detail_url_resolves(self):
         url = reverse("requerimento_inicial", kwargs={'cpf': self.cliente.cpf, 'pk': self.requerimento_inicial.id})
         self.assertEqual(resolve(url).func.view_class.__name__, "RequerimentoInicialDetailView")
@@ -84,7 +86,7 @@ class TestUrls(TransactionTestCase):
             'pk': self.requerimento_inicial.id
         })
         self.assertEqual(resolve(url).func.view_class.__name__, "ExigenciaRequerimentoInicialCreateView")
-        
+
     def test_atualizar_requerimento_inicial_url_resolves(self):
         url = reverse("atualizar_requerimento_inicial", kwargs={
             'cpf': self.cliente.cpf,
@@ -108,7 +110,7 @@ class TestUrls(TransactionTestCase):
 
     def test_excluir_mudanca_estado_requerimento_inicial_url_resolves(self):
         estado_novo = EstadoRequerimentoInicial.objects.create(nome="Concluído Deferido")
-        
+
         historico = HistoricoMudancaEstadoRequerimentoInicial.objects.create(
             requerimento=self.requerimento_inicial,
             estado_anterior=self.requerimento_inicial.estado,
@@ -155,7 +157,7 @@ class TestUrls(TransactionTestCase):
             natureza=self.natureza,  # Assumes a Natureza instance with id=1 exists or use a dummy integer if not used in view tests
             estado=self.estado_exigencia,    # Assumes EstadoExigencia instance with id=1 exists
         )
-  
+
         url = reverse("atualizar_exigencia_requerimento_inicial", kwargs={
             'cpf': self.cliente.cpf,
             'pk': self.requerimento_inicial.id,

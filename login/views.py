@@ -14,19 +14,20 @@ class CustomLoginView(LoginView):
 
     def get_success_url(self):
         return self.success_url
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = self.title
         return context
-    
+
+
 @method_decorator(login_required(login_url='login'), name='dispatch')
 def initialize_context(request):
     context = {}
     error = request.session.pop('flash_error', None)
-    if error != None:
-      context['errors'] = []
+    if error is not None:
+        context['errors'] = []
     context['errors'].append(error)
     # Check for user in the session
-    context['user'] = request.session.get('user',{'is_authenticated': False})
+    context['user'] = request.session.get('user', {'is_authenticated': False})
     return context
