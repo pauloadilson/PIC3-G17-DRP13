@@ -91,6 +91,11 @@ class RequerimentoRecurso(Requerimento):
         )
         return len(lista_exigencias)
 
+    @property
+    def total_mudancas_estado(self):
+        lista_mudancas_estado = HistoricoMudancaEstadoRequerimentoRecurso.objects.filter(requerimento=self)
+        return len(lista_mudancas_estado)
+
 
 class EstadoExigencia(models.Model):
     ESTADOS_EXIGENCIA = [
@@ -148,6 +153,20 @@ class HistoricoMudancaEstadoRequerimentoInicial(models.Model):
     requerimento = models.ForeignKey(RequerimentoInicial, on_delete=models.PROTECT, related_name='historico_estado_requerimento')
     estado_anterior = models.ForeignKey(EstadoRequerimentoInicial, on_delete=models.SET_NULL, null=True, related_name='estado_anterior')
     estado_novo = models.ForeignKey(EstadoRequerimentoInicial, on_delete=models.PROTECT, related_name='estado_novo')
+    observacao = models.TextField(blank=True, null=True)
+    data_mudanca = models.DateTimeField()
+
+    is_deleted = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.requerimento.protocolo} do estado {self.estado_anterior.nome} para {self.estado_novo.nome} em {self.data_mudanca}"
+
+
+class HistoricoMudancaEstadoRequerimentoRecurso(models.Model):
+    id = models.AutoField(primary_key=True)  # ID do historico de estado do requerimento
+    requerimento = models.ForeignKey(RequerimentoRecurso, on_delete=models.PROTECT, related_name='historico_estado_requerimento')
+    estado_anterior = models.ForeignKey(EstadoRequerimentoRecurso, on_delete=models.SET_NULL, null=True, related_name='estado_anterior')
+    estado_novo = models.ForeignKey(EstadoRequerimentoRecurso, on_delete=models.PROTECT, related_name='estado_novo')
     observacao = models.TextField(blank=True, null=True)
     data_mudanca = models.DateTimeField()
 

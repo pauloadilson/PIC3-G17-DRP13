@@ -2,7 +2,6 @@ from django import template
 import re
 
 register = template.Library()
-print("Custom filters carregados com sucesso!")
 
 
 @register.filter
