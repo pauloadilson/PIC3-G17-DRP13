@@ -6,6 +6,7 @@ from django.utils import timezone
 from clientes.models import Cliente
 from requerimentos.models import (
     EstadoExigencia,
+    HistoricoMudancaEstadoRequerimentoRecurso,
     Natureza,
     Servico,
     RequerimentoInicial,
@@ -229,6 +230,14 @@ class TestRequerimentoViews(TransactionTestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
+    def test_requerimento_recurso_ciencia_view_get(self):
+        url = reverse("ciencia_requerimento_recurso", kwargs={
+            "cpf": self.cliente.cpf,
+            "pk": self.requerimento_recurso.id
+        })
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
     def test_mudanca_estado_requerimento_inicial_create_view_get(self):
         # Create EstadoExigencia instance
         estado_novo = EstadoRequerimentoInicial.objects.create(nome="Concluído Deferido")
@@ -243,22 +252,27 @@ class TestRequerimentoViews(TransactionTestCase):
         )
         self.assertEqual(self.requerimento_inicial.estado, estado_novo)
 
+    def test_mudanca_estado_requerimento_recurso_create_view_get(self):
+        # Create EstadoExigencia instance
+        estado_novo = EstadoRequerimentoRecurso.objects.create(nome="Concluído Deferido")
+
+        # Create HistoricoMudancaEstadoRequerimentoRecurso instance
+        HistoricoMudancaEstadoRequerimentoRecurso.objects.create(
+            requerimento=self.requerimento_recurso,
+            estado_anterior=self.requerimento_recurso.estado,
+            estado_novo=estado_novo,
+            observacao="Teste mudança",
+            data_mudanca=timezone.now(),
+        )
+        self.assertEqual(self.requerimento_recurso.estado, estado_novo)
+
     def test_mudanca_estado_requerimento_inicial_delete_view_get(self):
         # Create a new Estado for the change
         estado_novo = EstadoRequerimentoInicial.objects.create(nome="Concluído Deferido")
 
-        requerimento_inicial = RequerimentoInicial.objects.create(
-            protocolo="PROTOINICIALMUDANCA",
-            NB="NBINICIALMUDANCA",
-            requerente_titular=self.cliente,
-            servico=self.servico,
-            data="2025-01-01",
-            estado=self.estado_inicial,
-        )
-
         historico = HistoricoMudancaEstadoRequerimentoInicial.objects.create(
-            requerimento=requerimento_inicial,
-            estado_anterior=requerimento_inicial.estado,
+            requerimento=self.requerimento_inicial,
+            estado_anterior=self.requerimento_inicial.estado,
             estado_novo=estado_novo,
             observacao="Teste mudança",
             data_mudanca=timezone.now(),
@@ -268,19 +282,40 @@ class TestRequerimentoViews(TransactionTestCase):
             "excluir_mudanca_estado_requerimento_inicial",
             kwargs={
                 "cpf": self.cliente.cpf,
-                "pk": requerimento_inicial.id,
+                "pk": self.requerimento_inicial.id,
                 "hist_pk": historico.id,
             }
         )
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 
-    # Additional tests
+    def test_mudanca_estado_requerimento_recurso_delete_view_get(self):
+        # Create a new Estado for the change
+        estado_novo = EstadoRequerimentoRecurso.objects.create(nome="Concluído Deferido")
+
+        historico = HistoricoMudancaEstadoRequerimentoRecurso.objects.create(
+            requerimento=self.requerimento_recurso,
+            estado_anterior=self.requerimento_recurso.estado,
+            estado_novo=estado_novo,
+            observacao="Teste mudança",
+            data_mudanca=timezone.now(),
+        )
+        # Use distinct keyword arguments for each id to avoid duplicate keys
+        url = reverse(
+            "excluir_mudanca_estado_requerimento_recurso",
+            kwargs={
+                "cpf": self.cliente.cpf,
+                "pk": self.requerimento_recurso.id,
+                "hist_pk": historico.id,
+            }
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
 
     def test_requerimento_inicial_update_view_post(self):
         url = reverse("atualizar_requerimento_inicial", kwargs={"cpf": self.cliente.cpf, "pk": self.requerimento_inicial.id})
         new_data = {
-            "protocolo": "PROTOINICIAL_UPDATED",
+            # "protocolo": "PROTOINICIAL_UPDATED",  # Assuming this is not editable
             "NB": self.requerimento_inicial.NB,
             "servico": self.servico.id,
             "data": "2025-01-15",
@@ -293,7 +328,7 @@ class TestRequerimentoViews(TransactionTestCase):
     def test_requerimento_recurso_update_view_post(self):
         url = reverse("atualizar_requerimento_recurso", kwargs={"cpf": self.cliente.cpf, "pk": self.requerimento_recurso.id})
         new_data = {
-            "protocolo": "PROTORECUSO_UPDATED",
+            # "protocolo": "PROTORECUSO_UPDATED",  # Assuming this is not editable
             "NB": self.requerimento_recurso.NB,
             "servico": self.servico.id,
             "data": "2021-02-15",

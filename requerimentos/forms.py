@@ -1,5 +1,6 @@
 from django import forms
 from requerimentos.models import (
+    HistoricoMudancaEstadoRequerimentoRecurso,
     RequerimentoInicial,
     RequerimentoRecurso,
     Exigencia,
@@ -236,6 +237,48 @@ class MudancaEstadoRequerimentoInicialForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(MudancaEstadoRequerimentoInicialForm, self).__init__(*args, **kwargs)
         self.fields['estado_novo'].queryset = EstadoRequerimentoInicial.objects.all()
+        self.fields['estado_anterior'].disabled = True  # Desabilita o campo estado_anterior
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Field('estado_anterior'),
+            Field('estado_novo'),
+            Field('observacao'),
+            Field('data_mudanca', css_class='form-control date_picker', placeholder='dd/mm/aaaa'),
+            FormActions(
+                Submit('submit', 'Salvar', css_class='btn btn-primary'),
+                Button('button', 'Voltar', css_class='btn btn-secondary', onclick='window.history.back()'),
+            )
+        )
+
+
+class RequerimentoRecursoCienciaForm(forms.ModelForm):
+    class Meta:
+        model = RequerimentoRecurso
+        fields = ['estado', 'observacao']
+
+    def __init__(self, *args, **kwargs):
+        super(RequerimentoRecursoCienciaForm, self).__init__(*args, **kwargs)
+
+        self.fields['estado'].queryset = EstadoRequerimentoRecurso.objects.all()
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Field('estado'),
+            Field('observacao'),
+            FormActions(
+                Submit('submit', 'Salvar', css_class='btn btn-primary'),
+                Button('button', 'Voltar', css_class='btn btn-secondary', onclick='window.history.back()'),
+            )
+        )
+
+
+class MudancaEstadoRequerimentoRecursoForm(forms.ModelForm):
+    class Meta:
+        model = HistoricoMudancaEstadoRequerimentoRecurso
+        fields = ['estado_anterior', 'estado_novo', 'observacao', 'data_mudanca']
+
+    def __init__(self, *args, **kwargs):
+        super(MudancaEstadoRequerimentoRecursoForm, self).__init__(*args, **kwargs)
+        self.fields['estado_novo'].queryset = EstadoRequerimentoRecurso.objects.all()
         self.fields['estado_anterior'].disabled = True  # Desabilita o campo estado_anterior
         self.helper = FormHelper()
         self.helper.layout = Layout(

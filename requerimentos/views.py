@@ -11,6 +11,7 @@ from django.utils.decorators import method_decorator
 from clientes.models import Cliente
 from requerimentos.models import (
     HistoricoMudancaEstadoRequerimentoInicial,
+    HistoricoMudancaEstadoRequerimentoRecurso,
     Requerimento,
     RequerimentoInicial,
     RequerimentoRecurso,
@@ -19,9 +20,11 @@ from requerimentos.models import (
 )
 from requerimentos.forms import (
     EscolhaTipoRequerimentoForm,
+    MudancaEstadoRequerimentoRecursoForm,
     RequerimentoInicialModelForm,
     MudancaEstadoRequerimentoInicialForm,
     RequerimentoInicialCienciaForm,
+    RequerimentoRecursoCienciaForm,
     RequerimentoRecursoModelForm,
     ExigenciaRequerimentoInicialModelForm,
     ExigenciaRequerimentoRecursoModelForm,
@@ -29,7 +32,7 @@ from requerimentos.forms import (
 from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
-from requerimentos.serializers import RequerimentoInicialSerializer
+from requerimentos.serializers import RequerimentoInicialSerializer, RequerimentoRecursoSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import ListCreateAPIView
 
@@ -666,6 +669,114 @@ class RequerimentoInicialCreateListAPIView(ListCreateAPIView):
 
     def get_queryset(self):
         return RequerimentoInicial.objects.filter(is_deleted=False)
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+
+@method_decorator(login_required(login_url='login'), name='dispatch')
+class RequerimentoRecursoCienciaView(UpdateView):
+    model = RequerimentoRecurso
+    template_name = "form.html"
+    form_class = RequerimentoRecursoCienciaForm
+    title = "Ciência no Recurso"
+    form_title_identificador = None
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        if obj.is_deleted:
+            raise Http404("Requerimento não encontrado")
+        return obj
+
+    def get_success_url(self):
+        return reverse_lazy("requerimento_recurso", kwargs={"cpf": self.kwargs["cpf"], "pk": self.object.id})
+
+    def get_context_data(self, **kwargs):
+        context = super(RequerimentoRecursoCienciaView, self).get_context_data(**kwargs)
+        context["title"] = self.title
+        context["form_title_identificador"] = f'NB nº {self.object.NB}'
+        return context
+
+    def form_valid(self, form):
+        requerimento = form.save(commit=False)
+        estado_anterior = requerimento.estado
+        requerimento.save()
+        HistoricoMudancaEstadoRequerimentoRecurso.objects.create(
+            requerimento=requerimento,
+            estado_anterior=estado_anterior,
+            estado_novo=requerimento.estado,
+            data_mudanca=timezone.now(),
+            observacao=requerimento.observacao
+        )
+        return super().form_valid(form)
+
+
+@method_decorator(login_required(login_url='login'), name='dispatch')
+class MudancaEstadoRequerimentoRecursoCreateView(CreateView):
+    model = HistoricoMudancaEstadoRequerimentoRecurso
+    template_name = "form.html"
+    form_class = MudancaEstadoRequerimentoRecursoForm
+    title = "Ciência no Recurso"
+    form_title_identificador = None
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial["requerimento"] = RequerimentoRecurso.objects.filter(is_deleted=False).get(id=self.kwargs["pk"])
+        initial["estado_anterior"] = RequerimentoRecurso.objects.filter(is_deleted=False).get(id=self.kwargs["pk"]).estado
+        return initial
+
+    def form_valid(self, form):
+        form.instance.requerimento = RequerimentoRecurso.objects.get(id=self.kwargs["pk"])
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("requerimento_recurso", kwargs={"cpf": self.kwargs["cpf"], "pk": self.kwargs["pk"]})
+
+    def get_context_data(self, **kwargs):
+        context = super(MudancaEstadoRequerimentoRecursoCreateView, self).get_context_data(**kwargs)
+        context["title"] = self.title
+        return context
+
+
+@method_decorator(login_required(login_url='login'), name='dispatch')
+class MudancaEstadoRequerimentoRecursoDeleteView(DeleteView):
+    model = HistoricoMudancaEstadoRequerimentoRecurso
+    template_name = "delete.html"
+    title = "Excluindo Mudança de Estado do Requerimento"
+    tipo_objeto = "a mudança de estado do requerimento"
+    slug_field = "hist_pk"
+    slug_url_kwarg = "hist_pk"
+
+    def get_context_data(self, **kwargs):
+        context = super(MudancaEstadoRequerimentoRecursoDeleteView, self).get_context_data(**kwargs)
+        context["title"] = self.title
+        context["form_title_identificador"] = f"de NB nº {self.object.requerimento.NB}"
+        context["tipo_objeto"] = self.tipo_objeto
+        context["qtde_instancias_filhas"] = 0
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy("requerimento_inicial", kwargs={"cpf": self.kwargs["cpf"], "pk": self.kwargs["pk"]})
+
+    def get_object(self, queryset=None):
+        cpf = self.kwargs.get("cpf")
+        pk = self.kwargs.get("pk")
+        hist_pk = self.kwargs.get("hist_pk")
+        return get_object_or_404(
+            HistoricoMudancaEstadoRequerimentoRecurso,
+            id=hist_pk,
+            requerimento__id=pk,
+            requerimento__requerente_titular__cpf=cpf
+        )
+
+
+class RequerimentoRecursoCreateListAPIView(ListCreateAPIView):
+    permission_classes = (IsAuthenticated,)
+    queryset = RequerimentoRecurso.objects.all()
+    serializer_class = RequerimentoRecursoSerializer
+
+    def get_queryset(self):
+        return RequerimentoRecurso.objects.filter(is_deleted=False)
 
     def perform_create(self, serializer):
         serializer.save()
