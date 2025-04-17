@@ -5,7 +5,7 @@
 <main class="content mb-5" >
     <div class="container-fluid">
         <div class="p-2 mt-3">
-            <div class='display-5'>Bem Vindo(a)
+            <div class='display-5'>Seja Bem Vindo(a)
                 {% if user.is_authenticated %}, {% firstof user.get_full_name user.get_username %}!
                 {% else %}
                 !
@@ -37,7 +37,7 @@
               </div>
             {% else %}
             <div class="card card-body text-center">
-                <h3 class="mb-0">Este é um site desenvolvido como atividade avaliativa para o Projeto Integrador em Computação II<br>
+                <h3 class="mb-0">Este é um site desenvolvido como atividade avaliativa para o Projeto Integrador em Computação III<br>
                 </h3>
             </div>
             {% endif %}
@@ -58,7 +58,7 @@
             events: [
                 {% for evento in agenda %}
                 {
-                  title: '{{ evento.titulo }}',
+                  title: '{{ evento.tipo|capfirst}}: {{ evento.titulo }}',
                   tipo: '{{ evento.tipo }}',
                   descricao: '{{ evento.descricao }}',
                   start: '{{ evento.data_inicio|date:"Y-m-d\TH:i:s" }}',

@@ -1,22 +1,25 @@
 import requests
-import json
-from login.auth_helper import get_token
+from microsoft_authentication.auth_helper import get_token
 
 graph_url = 'https://graph.microsoft.com/v1.0'
 
+
 def get_user(token):
     # Send GET to /me
-    user = requests.get(f'{graph_url}/me',
-    headers={'Authorization': f"Bearer {token}"},
-    params={
-'$select':'displayName,mail,mailboxSettings,userPrincipalName'})
+    user = requests.get(
+        f'{graph_url}/me',
+        headers={'Authorization': f"Bearer {token}"},
+        params={
+            '$select': 'displayName,mail,mailboxSettings,userPrincipalName'})
     return user.json()
+
 
 def get_calendar_events(token):
     # Send GET to /me/events
-    events = requests.get(f'{graph_url}/me/events',
-    headers = {'Authorization': f"Bearer {token}"}, 
-    params={'$select':'subject,start,end, loccation'})
+    events = requests.get(
+        f'{graph_url}/me/events',
+        headers={'Authorization': f"Bearer {token}"},
+        params={'$select': 'subject,start,end, loccation'})
     return events.json()
 
 

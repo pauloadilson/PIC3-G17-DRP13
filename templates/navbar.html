@@ -43,7 +43,7 @@
             <a class="nav-link" id="agenda-link" aria-describedby="agenda-link" href="{% url 'agenda' %}">Agenda</a>
           </div>
           </li>
-          {% if request.user.groups.all.0.name != "secretarias"%}
+          {% if request.user.groups.all.0.name != "Secretarias" %}
           <li class="nav-item">
             <a class="nav-link disabled" aria-disabled="true" href="#">Pagamentos</a>
           </li>

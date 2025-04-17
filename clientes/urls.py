@@ -1,82 +1,29 @@
-from django.urls import path
 from django.urls import path, include
 from clientes.views import (
-    AtendimentoCreateView,
-    AtendimentoDeleteView,
-    AtendimentoDetailView,
-    AtendimentoUpdateView,
-    AtendimentosListView,
-    DashboardView,
     IndexView,
     ClientesListView,
     ClienteCreateView,
     ClienteDetailView,
     ClienteUpdateView,
     ClienteDeleteView,
-    MudancaEstadoRequerimentoInicialCreateView,
-    MudancaEstadoRequerimentoInicialDeleteView,
-    RequerimentoInicialCreateView,
-    RequerimentoInicialDetailView,
-    RequerimentoInicialUpdateView,
-    RequerimentoInicialDeleteView,
-    RequerimentoInicialCienciaView,
-    RequerimentoRecursoCreateView,
-    RequerimentoRecursoDetailView,
-    RequerimentoRecursoUpdateView,
-    RequerimentoRecursoDeleteView,
-    ExigenciaRequerimentoInicialCreateView,
-    ExigenciaRequerimentoInicialUpdateView,
-    ExigenciaRequerimentoInicialDeleteView,
-    ExigenciaRequerimentoRecursoCreateView,
-    ExigenciaRequerimentoRecursoUpdateView,
-    ExigenciaRequerimentoRecursoDeleteView,
-    EscolherTipoRequerimentoView,
-    PrazoView,
+    ClienteCreateListAPIView,
+    ClienteRetrieveUpdateDestroyAPIView,
+    DashboardView,
 )
 
 urlpatterns = [
     path("", IndexView.as_view(), name="index"),
     path("clientes/", ClientesListView.as_view(), name="clientes"),
-    path("cliente/", include ([
+    path("cliente/", include([
         path('adicionar', ClienteCreateView.as_view(), name='adicionar_cliente'),
         path('<str:cpf>', ClienteDetailView.as_view(), name='cliente'),
         path('<str:cpf>/atualizar', ClienteUpdateView.as_view(), name='atualizar_cliente'),
         path('<str:cpf>/excluir', ClienteDeleteView.as_view(), name='excluir_cliente'),
     ])),
-    path('escolher-requerimento/<str:cpf>', EscolherTipoRequerimentoView.as_view(), name='escolher_tipo_requerimento'),
-    path("requerimento_inicial/<str:cpf>/", include ([
-            path("adicionar", RequerimentoInicialCreateView.as_view(), name="adicionar_requerimento_inicial"),
-            path("<int:pk>", RequerimentoInicialDetailView.as_view(), name="requerimento_inicial"),
-            path("<int:pk>/atualizar", RequerimentoInicialUpdateView.as_view(), name="atualizar_requerimento_inicial"),
-            path("<int:pk>/excluir", RequerimentoInicialDeleteView.as_view(), name="excluir_requerimento_inicial"),
-            path("<int:pk>/ciencia", MudancaEstadoRequerimentoInicialCreateView.as_view(), name="ciencia_requerimento_inicial"),
-            path("<int:pk>/excluir_mudanca_estado", MudancaEstadoRequerimentoInicialDeleteView.as_view(), name="excluir_mudanca_estado_requerimento_inicial"),
-            
+    path('api/v1/clientes/', include([
+        path("", ClienteCreateListAPIView.as_view(), name='cliente-create-list'),
+        path("<str:cpf>", ClienteRetrieveUpdateDestroyAPIView.as_view(), name='cliente-detail-update-delete'),
     ])),
-    path("requerimento_recurso/<str:cpf>/", include ([
-            path("adicionar", RequerimentoRecursoCreateView.as_view(), name="adicionar_requerimento_recurso"),
-            path("<int:pk>", RequerimentoRecursoDetailView.as_view(), name="requerimento_recurso"),
-            path("<int:pk>/atualizar", RequerimentoRecursoUpdateView.as_view(), name="atualizar_requerimento_recurso"),
-            path("<int:pk>/excluir", RequerimentoRecursoDeleteView.as_view(), name="excluir_requerimento_recurso"),
-    ])),
-    path("exigencia_requerimento_inicial/<str:cpf>/<int:pk>/", include ([
-            path("adicionar", ExigenciaRequerimentoInicialCreateView.as_view(), name="adicionar_exigencia_requerimento_inicial"),
-            path("atualizar", ExigenciaRequerimentoInicialUpdateView.as_view(), name="atualizar_exigencia_requerimento_inicial"),
-            path("excluir", ExigenciaRequerimentoInicialDeleteView.as_view(), name="excluir_exigencia_requerimento_inicial"),
-    ])),
-    path("exigencia_requerimento_recurso/<str:cpf>/<int:pk>/", include ([
-            path("adicionar", ExigenciaRequerimentoRecursoCreateView.as_view(), name="adicionar_exigencia_requerimento_recurso"),
-            path("atualizar", ExigenciaRequerimentoRecursoUpdateView.as_view(), name="atualizar_exigencia_requerimento_recurso"),
-            path("excluir", ExigenciaRequerimentoRecursoDeleteView.as_view(), name="excluir_exigencia_requerimento_recurso"),
-    ])),
-    path("atendimentos", AtendimentosListView.as_view(), name="atendimentos"),
-    path("atendimento/",include([
-                path("adicionar",AtendimentoCreateView.as_view(), name="adicionar_atendimento",),
-                path("<str:cpf>/adicionar",AtendimentoCreateView.as_view(), name="adicionar_atendimento_cliente"),
-                path("<str:cpf>/<int:pk>", AtendimentoDetailView.as_view(), name="atendimento"),
-                path("<str:cpf>/<int:pk>/atualizar", AtendimentoUpdateView.as_view(), name="atualizar_atendimento"),
-                path("<str:cpf>/<int:pk>/excluir", AtendimentoDeleteView.as_view(), name="excluir_atendimento"),
-    ])),
-    path("prazos", PrazoView.as_view(), name="prazos"),
     path("dashboard", DashboardView.as_view(), name="dashboard"),
+    
 ]
