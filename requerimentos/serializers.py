@@ -21,6 +21,14 @@ class ServicoSerializer(serializers.ModelSerializer):
 
 
 class RequerimentoInicialSerializer(serializers.ModelSerializer):
+    estado = serializers.SerializerMethodField(read_only=True)
+
+    def get_estado(self, obj):
+        estado = EstadoRequerimentoInicial.objects.filter(requerimento_inicial=obj).first()
+        if estado:
+            return EstadoRequerimentoInicialSerializer(estado).data
+        return None
+
     class Meta:
         model = RequerimentoInicial
         fields = [

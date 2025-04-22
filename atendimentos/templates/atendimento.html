@@ -42,7 +42,7 @@
             <hr />
             <dl class="row">
                 <dt class="col-sm-3">Data</dt>
-                <dd class="col-sm-9">{{ atendimento.data }}</dd>
+                <dd class="col-sm-9">{{ atendimento.data|date:"d/m/Y" }}</dd>
               
                 <dt class="col-sm-3 text-truncate">Cliente</dt>
                 <dd class="col-sm-9">{{ atendimento.cliente.nome }}</dd>

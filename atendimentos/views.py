@@ -23,7 +23,7 @@ class AtendimentosListView(ListView):
     template_name = "atendimentos.html"
     context_object_name = "atendimentos"
     title = "Atendimentos"
-    ordering = ["data"]
+    ordering = ["-data"]
     paginate_by = 10
 
     def get_context_data(self, **kwargs):

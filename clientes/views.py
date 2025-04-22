@@ -215,6 +215,7 @@ class ClienteRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
         instance.is_deleted = True
         instance.save()
 
+
 @method_decorator(login_required(login_url="login"), name="dispatch")
 class DashboardView(TemplateView):
     template_name = "dashboard.html"
