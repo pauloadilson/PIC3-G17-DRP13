@@ -8,7 +8,6 @@ from clientes.views import (
     ClienteDeleteView,
     ClienteCreateListAPIView,
     ClienteRetrieveUpdateDestroyAPIView,
-    DashboardView,
 )
 
 urlpatterns = [
@@ -24,6 +23,4 @@ urlpatterns = [
         path("", ClienteCreateListAPIView.as_view(), name='cliente-create-list'),
         path("<str:cpf>", ClienteRetrieveUpdateDestroyAPIView.as_view(), name='cliente-detail-update-delete'),
     ])),
-    path("dashboard", DashboardView.as_view(), name="dashboard"),
-    
 ]

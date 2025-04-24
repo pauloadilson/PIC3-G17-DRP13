@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "requerimentos",
     "atendimentos",
     "microsoft_authentication",
+    "dashboard",
 ]
 
 SITE_ID = 1

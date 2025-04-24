@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+        
+{% block content %}
+    
+<main class="content mb-5" >
+    <div class="container-fluid">
+        <div class="p-2 mt-3">
+            <div class="row row-cols-1 row-cols-md-4 g-4 mb-4">
+                <div class="col">
+                  <div class="card text-bg-light h-100 shadow-sm">
+                    <div class="card-header">Clientes</div>
+                    <div class="card-body">
+                      <h2 class="card-text text-center">{{ total_clientes }}</h2>
+                    </div>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="card text-bg-light h-100 shadow-sm">
+                    <div class="card-header">Requerimentos</div>
+                    <div class="card-body">
+                      <h3 class="card-text text-center">{{ total_requerimentos }}</h3>
+                    </div>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="card text-bg-light h-100 shadow-sm">
+                    <div class="card-header">Recursos</div>
+                    <div class="card-body">
+                      <h3 class="card-text text-center">{{ total_requerimentos_recurso }}</h3>
+                    </div>
+                  </div>
+                </div>
+                <div class="col">
+                  <div class="card text-bg-light h-100 shadow-sm">
+                    <div class="card-header">Atendimentos</div>
+                    <div class="card-body">
+                      <h3 class="card-text text-center">{{ total_atendimentos }}</h3>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            <div class="p-1">
+              <h1>Gráficos de Requerimentos</h1>
+                <h2>Número de Requerimentos Abertos no Ano - Plotly</h2>
+                        {{ grafico1|safe }}
+                <h2>Distribuição de Requerimentos Abertos por Ano</h2>
+                        {{ grafico2|safe }}
+            </div>
+
+        </div>
+    </div>
+</main>
+{% endblock content %}
