@@ -21,6 +21,10 @@ class ServicoSerializer(serializers.ModelSerializer):
 
 
 class RequerimentoInicialSerializer(serializers.ModelSerializer):
+    servico_nome = serializers.CharField(source='servico.nome', read_only=True)
+    estado_nome = serializers.CharField(source='estado.nome', read_only=True)
+    requerente_titular_nome = serializers.CharField(source='requerente_titular.nome', read_only=True)
+
     class Meta:
         model = RequerimentoInicial
         fields = [
@@ -33,10 +37,11 @@ class RequerimentoInicialSerializer(serializers.ModelSerializer):
             "observacao",
             "is_deleted",
             "requerente_titular",
-            "servico",
+            "requerente_titular_nome",
+            "servico_nome",
             "tutor_curador",
             "instituidor",
-            "estado"]
+            "estado_nome"]
 
 
 class RequerimentoRecursoSerializer(serializers.ModelSerializer):
