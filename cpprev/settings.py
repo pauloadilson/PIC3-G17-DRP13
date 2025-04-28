@@ -32,7 +32,7 @@ SECRET_KEY = os.environ.get(
     default=secrets.token_urlsafe(nbytes=64),
 )
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DEBUG", default=True)
+DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', "https://cpprev-89685ab9a32d.herokuapp.com/").split(',')
 
@@ -55,7 +55,9 @@ INSTALLED_APPS = [
     "clientes",
     "login",
     "agenda",
-    "cpprev_authentication"
+    "requerimentos",
+    "atendimentos",
+    "microsoft_authentication",
 ]
 
 SITE_ID = 1
@@ -172,9 +174,9 @@ django_heroku.settings(locals())
 MICROSOFT_AUTH_CLIENT_ID = os.environ.get('MICROSOFT_AUTH_CLIENT_ID')
 MICROSOFT_AUTH_CLIENT_SECRET = os.environ.get('MICROSOFT_AUTH_CLIENT_SECRET')
 MICROSOFT_AUTH_TENANT_ID = os.environ.get('MICROSOFT_AUTH_TENANT_ID')
-MICROSOFT_AUTH_REDIRECT_URI=os.environ.get('MICROSOFT_AUTH_REDIRECT_URI')
-MICROSOFT_AUTH_CLIENT_EMAIL=os.environ.get('MICROSOFT_AUTH_CLIENT_EMAIL')
-MICROSOFT_AUTH_LOGIN_TYPE = 'ma' # 'ma' para contas Microsoft
+MICROSOFT_AUTH_REDIRECT_URI = os.environ.get('MICROSOFT_AUTH_REDIRECT_URI')
+MICROSOFT_AUTH_CLIENT_EMAIL = os.environ.get('MICROSOFT_AUTH_CLIENT_EMAIL')
+MICROSOFT_AUTH_LOGIN_TYPE = 'ma'  # 'ma' para contas Microsoft
 MICROSOFT_AUTH_SCOPES = os.environ.get('MICROSOFT_AUTH_SCOPES').split(',')
 
 REST_FRAMEWORK = {
