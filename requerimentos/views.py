@@ -32,9 +32,19 @@ from requerimentos.forms import (
 from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
-from requerimentos.serializers import RequerimentoInicialSerializer, RequerimentoRecursoSerializer
+from requerimentos.serializers import (
+    HistoricoMudancaEstadoRequerimentoInicialSerializer,
+    HistoricoMudancaEstadoRequerimentoRecursoSerializer,
+    RequerimentoInicialCompletoSerializer,
+    RequerimentoInicialSerializer,
+    RequerimentoRecursoCompletoSerializer,
+    RequerimentoRecursoSerializer,
+    ExigenciaRequerimentoInicialSerializer,
+    ExigenciaRequerimentoRecursoSerializer
+)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import ListCreateAPIView
+from rest_framework import viewsets
 
 
 @method_decorator(login_required(login_url="login"), name="dispatch")
@@ -169,7 +179,7 @@ class RequerimentoInicialDetailView(DetailView):
         context = super(RequerimentoInicialDetailView, self).get_context_data(**kwargs)
 
         cliente = self.object.requerente_titular
-        exigencias = self.object.requerimento_exigencia.filter(is_deleted=False).filter(requerimento__id=self.object.id)
+        exigencias = self.object.requerimento_inicial_exigencia.filter(is_deleted=False).filter(requerimento__id=self.object.id)
         historico_mudancas_de_estado = self.object.historico_estado_requerimento.filter(is_deleted=False).filter(requerimento__id=self.object.id)
         qtde_exigencias = self.object.total_exigencias
         qtde_mudancas_estado = self.object.total_mudancas_estado
@@ -202,15 +212,16 @@ class RequerimentoRecursoDetailView(DetailView):
         context = super(RequerimentoRecursoDetailView, self).get_context_data(**kwargs)
 
         cliente = self.object.requerente_titular
-        exigencias = self.object.requerimento_exigencia.filter(
+        exigencias = self.object.requerimento_recurso_exigencia.filter(
             is_deleted=False
         ).filter(requerimento__id=self.object.id)
-        historico_mudancas_de_estado = []  # implementar self.object.historico_estado_requerimento.filter(is_deleted=False).filter(requerimento__id=self.object.id)
+        print(exigencias)
+        historico_mudancas_de_estado = self.object.historico_estado_requerimento.filter(is_deleted=False).filter(requerimento__id=self.object.id)  # implementar self.object.historico_estado_requerimento.filter(is_deleted=False).filter(requerimento__id=self.object.id)
         qtde_instancias_filhas = self.object.total_exigencias
 
         context["title"] = self.title
         context["cliente"] = cliente
-        context["exigencias_requerimento"] = exigencias
+        context["exigencias"] = exigencias
         context["historico_mudancas_de_estado"] = historico_mudancas_de_estado
         context["qtde_instancias_filhas"] = qtde_instancias_filhas
         return context
@@ -780,3 +791,99 @@ class RequerimentoRecursoCreateListAPIView(ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save()
+
+
+class RequerimentoInicialViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    queryset = RequerimentoInicial.objects.filter(is_deleted=False)
+    serializer_class = RequerimentoInicialSerializer
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return RequerimentoInicialCompletoSerializer
+        return super().get_serializer_class()
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        cliente_cpf = self.kwargs.get("cliente_cpf")
+        if cliente_cpf:
+            queryset = queryset.filter(requerente_titular__cpf=cliente_cpf)
+        if self.action == 'retrieve':
+            queryset = queryset.prefetch_related(
+                'requerimento_inicial_exigencia',
+                'historico_estado_requerimento'
+            )
+        return queryset
+
+
+class RequerimentoRecursoViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    queryset = RequerimentoRecurso.objects.filter(is_deleted=False)
+    serializer_class = RequerimentoRecursoSerializer
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return RequerimentoRecursoCompletoSerializer
+        return super().get_serializer_class()
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        cliente_cpf = self.kwargs.get("cliente_cpf")
+        if cliente_cpf:
+            qs = qs.filter(requerente_titular__cpf=cliente_cpf)
+        if self.action == 'retrieve':
+            qs = qs.prefetch_related(
+                'requerimento_recurso_exigencia',
+                'historico_estado_requerimento'
+            )
+
+        return qs
+
+
+class ExigenciaRequerimentoInicialViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ExigenciaRequerimentoInicialSerializer
+
+    def get_queryset(self):
+        qs = ExigenciaRequerimentoInicial.objects.filter(is_deleted=False)
+        requerimento_id = self.kwargs.get("req_inicial_pk")
+        if requerimento_id:
+            qs = qs.filter(requerimento__id=requerimento_id)
+        return qs
+
+
+class ExigenciaRequerimentoRecursoViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    queryset = ExigenciaRequerimentoRecurso.objects.filter(is_deleted=False)
+    serializer_class = ExigenciaRequerimentoRecursoSerializer
+
+    def get_queryset(self):
+        qs = ExigenciaRequerimentoRecurso.objects.filter(is_deleted=False)
+        requerimento_id = self.kwargs.get("req_inicial_pk")
+        if requerimento_id:
+            qs = qs.filter(requerimento__id=requerimento_id)
+        return qs
+
+
+class HistoricoMudancaEstadoRequerimentoInicialViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = HistoricoMudancaEstadoRequerimentoInicialSerializer
+
+    def get_queryset(self):
+        qs = HistoricoMudancaEstadoRequerimentoInicial.objects.filter(is_deleted=False)
+        requerimento_id = self.kwargs.get("req_inicial_pk")
+        if requerimento_id:
+            qs = qs.filter(requerimento__id=requerimento_id)
+        return qs
+
+
+class HistoricoMudancaEstadoRequerimentoRecursoViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = HistoricoMudancaEstadoRequerimentoRecursoSerializer
+
+    def get_queryset(self):
+        qs = HistoricoMudancaEstadoRequerimentoRecurso.objects.filter(is_deleted=False)
+        requerimento_id = self.kwargs.get("req_recurso_pk")
+        if requerimento_id:
+            qs = qs.filter(requerimento__id=requerimento_id)
+        return qs

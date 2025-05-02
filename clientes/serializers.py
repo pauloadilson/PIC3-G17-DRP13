@@ -8,6 +8,18 @@ from requerimentos.serializers import RequerimentoInicialSerializer, Requeriment
 
 class ClienteSerializer(serializers.ModelSerializer):
     quantidade_entidades_dependentes = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = Cliente
+        fields = '__all__'
+
+    def get_quantidade_entidades_dependentes(self, obj):
+        quantidade = obj.total_requerimentos + obj.total_atendimentos
+        return quantidade
+
+
+class ClienteCompletoSerializer(serializers.ModelSerializer):
+    quantidade_entidades_dependentes = serializers.SerializerMethodField(read_only=True)
     atendimentos = serializers.SerializerMethodField(read_only=True)
     requerimentos = serializers.SerializerMethodField(read_only=True)
     recursos = serializers.SerializerMethodField(read_only=True)

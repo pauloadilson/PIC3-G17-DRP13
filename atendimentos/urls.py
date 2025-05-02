@@ -15,6 +15,7 @@ urlpatterns = [
     path("atendimento/", include([
         path("adicionar", AtendimentoCreateView.as_view(), name="adicionar_atendimento",),
         path("<str:cpf>/adicionar", AtendimentoCreateView.as_view(), name="adicionar_atendimento_cliente"),
+        path("<str:cpf>/<int:pk>/adicionar", AtendimentoCreateView.as_view(), name="adicionar_atendimento_cliente_requerimento"),
         path("<str:cpf>/<int:pk>", AtendimentoDetailView.as_view(), name="atendimento"),
         path("<str:cpf>/<int:pk>/atualizar", AtendimentoUpdateView.as_view(), name="atualizar_atendimento"),
         path("<str:cpf>/<int:pk>/excluir", AtendimentoDeleteView.as_view(), name="excluir_atendimento"),

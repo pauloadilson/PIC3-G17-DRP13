@@ -18,6 +18,9 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 import pytz
 from microsoft_authentication.auth_helper import get_token
+from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
+from agenda.serializers import EventoSerializer
 
 
 @method_decorator(login_required(login_url='login'), name='dispatch')
@@ -131,3 +134,9 @@ class PrazoView(TemplateView):
         context["title"] = self.title
         context["agenda"] = eventos
         return context
+
+
+class EventoViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    queryset = Evento.objects.all()
+    serializer_class = EventoSerializer

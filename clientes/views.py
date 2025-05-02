@@ -1,6 +1,5 @@
 from datetime import datetime
 from django.http import Http404
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 from django.views.generic import (
     TemplateView,
@@ -24,7 +23,8 @@ from django.shortcuts import get_object_or_404
 from itertools import chain
 from django.utils import timezone
 
-from clientes.serializers import ClienteSerializer
+from rest_framework import viewsets
+from clientes.serializers import ClienteCompletoSerializer, ClienteSerializer
 
 
 class IndexView(TemplateView):
@@ -184,29 +184,22 @@ class ClienteDeleteView(DeleteView):
         return obj
 
 
-class ClienteCreateListAPIView(ListCreateAPIView):
+class ClienteViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
-    queryset = Cliente.objects.all()
+    queryset = Cliente.objects.filter(is_deleted=False)
     serializer_class = ClienteSerializer
+    lookup_field = 'cpf'
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return ClienteCompletoSerializer
+        return super().get_serializer_class()
 
     def get_queryset(self):
-        return Cliente.objects.filter(is_deleted=False)
-
-    def perform_create(self, serializer):
-        serializer.save()
-
-
-class ClienteRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
-    permission_classes = (IsAuthenticated,)
-    queryset = Cliente.objects.all()
-    serializer_class = ClienteSerializer
-
-    def get_object(self):
-        return get_object_or_404(Cliente, cpf=self.kwargs['cpf'])
-
-    def perform_update(self, serializer):
-        serializer.save()
-
-    def perform_destroy(self, instance):
-        instance.is_deleted = True
-        instance.save()
+        queryset = super().get_queryset()
+        if self.action == 'retrieve':
+            queryset = queryset.prefetch_related(
+                'cliente_atendimento',
+                'cliente_titular_requerimento'
+            )
+        return queryset
