@@ -20,8 +20,7 @@ class AtendimentoModelForm(forms.ModelForm):
         if self.initial.get('cliente'):
             self.fields['cliente'].disabled = True
 
-        if self.instance and self.instance.pk:
-            self.fields['cliente'].disabled = True
+        if self.initial.get('requerimento'):
             self.fields['requerimento'].disabled = True
 
         self.helper = FormHelper()

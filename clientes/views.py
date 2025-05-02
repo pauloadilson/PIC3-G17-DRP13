@@ -1,6 +1,5 @@
 from datetime import datetime
 from django.http import Http404
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 from django.views.generic import (
     TemplateView,
@@ -24,7 +23,8 @@ from django.shortcuts import get_object_or_404
 from itertools import chain
 from django.utils import timezone
 
-from clientes.serializers import ClienteSerializer
+from rest_framework import viewsets
+from clientes.serializers import ClienteCompletoSerializer, ClienteSerializer
 
 
 class IndexView(TemplateView):
@@ -183,27 +183,23 @@ class ClienteDeleteView(DeleteView):
             raise Http404("Cliente não encontrado")
         return obj
 
-from rest_framework import viewsets
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from clientes.serializers import ClienteSerializer, RequerimentoInicialSerializer
-
 
 class ClienteViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
-    queryset = Cliente.objects.all()
+    queryset = Cliente.objects.filter(is_deleted=False)
     serializer_class = ClienteSerializer
     lookup_field = 'cpf'
 
-    @action(detail=True, methods=['get'])
-    def requerimentos_iniciaisSet(self, request, cpf=None):
-        cliente = self.get_object()
-        requerimentos_iniciais = RequerimentoInicial.objects.filter(requerente_titular=cliente)
-        # requerimentos = cliente.cliente_titular_requerimento.all()
-        serializer = RequerimentoInicialSerializer(requerimentos_iniciais, many=True)
-        return Response(serializer.data)
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return ClienteCompletoSerializer
+        return super().get_serializer_class()
 
-class RequerimentoInicialViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated,)
-    queryset = RequerimentoInicial.objects.all()
-    serializer_class = RequerimentoInicialSerializer
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if self.action == 'retrieve':
+            queryset = queryset.prefetch_related(
+                'cliente_atendimento',
+                'cliente_titular_requerimento'
+            )
+        return queryset
