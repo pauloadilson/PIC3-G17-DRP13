@@ -162,3 +162,10 @@ class AtendimentoViewSet(viewsets.ModelViewSet):
         if self.action == 'retrieve':
             return AtendimentoCompletoSerializer
         return super().get_serializer_class()
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        cliente_cpf = self.kwargs.get("cliente_cpf")
+        if cliente_cpf:
+            queryset = queryset.filter(requerente_titular__cpf=cliente_cpf)
+        return queryset

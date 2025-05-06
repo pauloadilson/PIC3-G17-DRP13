@@ -1,5 +1,15 @@
 from rest_framework import serializers
-from requerimentos.models import EstadoRequerimentoInicial, EstadoRequerimentoRecurso, ExigenciaRequerimentoInicial, ExigenciaRequerimentoRecurso, HistoricoMudancaEstadoRequerimentoInicial, HistoricoMudancaEstadoRequerimentoRecurso, RequerimentoInicial, RequerimentoRecurso, Servico
+from requerimentos.models import (
+    EstadoRequerimentoInicial,
+    EstadoRequerimentoRecurso,
+    ExigenciaRequerimentoInicial,
+    ExigenciaRequerimentoRecurso,
+    HistoricoMudancaEstadoRequerimentoInicial,
+    HistoricoMudancaEstadoRequerimentoRecurso,
+    RequerimentoInicial,
+    RequerimentoRecurso,
+    Servico,
+)
 
 
 class EstadoRequerimentoInicialSerializer(serializers.ModelSerializer):
@@ -57,6 +67,10 @@ class RequerimentoInicialCompletoSerializer(serializers.ModelSerializer):
 
 
 class RequerimentoRecursoSerializer(serializers.ModelSerializer):
+    servico_nome = serializers.CharField(source='servico.nome', read_only=True)
+    estado_nome = serializers.CharField(source='estado.nome', read_only=True)
+    requerente_titular_nome = serializers.CharField(source='requerente_titular.nome', read_only=True)
+
     class Meta:
         model = RequerimentoRecurso
         fields = '__all__'
@@ -73,7 +87,7 @@ class RequerimentoRecursoCompletoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RequerimentoRecurso
-        fields = '__all__'  # + "requerente_titular_nome" + "servico_nome" + "estado_nome" + "exigencias" + "mudancas_estado" + "quantidade_entidades_dependentes"
+        fields = '__all__'
 
     def get_quantidade_entidades_dependentes(self, obj):
         quantidade = obj.total_exigencias + obj.total_mudancas_estado
@@ -89,50 +103,40 @@ class RequerimentoRecursoCompletoSerializer(serializers.ModelSerializer):
 
 
 class ExigenciaRequerimentoInicialSerializer(serializers.ModelSerializer):
+    natureza_nome = serializers.CharField(source='natureza.nome', read_only=True)
+    estado_nome = serializers.CharField(source='estado.nome', read_only=True)
+
     class Meta:
         model = ExigenciaRequerimentoInicial
-        fields = [
-            "id",
-            "requerimento",
-            "data",
-            "natureza",
-            "estado"
-        ]
+        fields = '__all__'
 
 
 class ExigenciaRequerimentoRecursoSerializer(serializers.ModelSerializer):
+    natureza_nome = serializers.CharField(source='natureza.nome', read_only=True)
+    estado_nome = serializers.CharField(source='estado.nome', read_only=True)
+
     class Meta:
         model = ExigenciaRequerimentoRecurso
-        fields = [
-            "id",
-            "requerimento",
-            "data",
-            "natureza",
-            "estado"
-        ]
+        fields = '__all__'
 
 
 class HistoricoMudancaEstadoRequerimentoInicialSerializer(serializers.ModelSerializer):
+    estado_anterior_nome = serializers.CharField(source='estado_anterior.nome', read_only=True)
+    estado_novo_nome = serializers.CharField(source='estado_novo.nome', read_only=True)
+    requerimento_nome = serializers.CharField(source='requerimento.nome', read_only=True)
+    requerimento_servico_nome = serializers.CharField(source='requerimento.servico.nome', read_only=True)
+
     class Meta:
         model = HistoricoMudancaEstadoRequerimentoInicial
-        fields = [
-            "id",
-            "requerimento",
-            "estado_anterior",
-            "estado_novo",
-            "observacao",
-            "data_mudanca"
-        ]
+        fields = '__all__'
 
 
 class HistoricoMudancaEstadoRequerimentoRecursoSerializer(serializers.ModelSerializer):
+    estado_anterior_nome = serializers.CharField(source='estado_anterior.nome', read_only=True)
+    estado_novo_nome = serializers.CharField(source='estado_novo.nome', read_only=True)
+    requerimento_nome = serializers.CharField(source='requerimento.nome', read_only=True)
+    requerimento_servico_nome = serializers.CharField(source='requerimento.servico.nome', read_only=True)
+
     class Meta:
         model = HistoricoMudancaEstadoRequerimentoRecurso
-        fields = [
-            "id",
-            "requerimento",
-            "estado_anterior",
-            "estado_novo",
-            "observacao",
-            "data_mudanca"
-        ]
+        fields = '__all__'
