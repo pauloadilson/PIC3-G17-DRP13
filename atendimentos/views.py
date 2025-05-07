@@ -167,5 +167,5 @@ class AtendimentoViewSet(viewsets.ModelViewSet):
         queryset = super().get_queryset()
         cliente_cpf = self.kwargs.get("cliente_cpf")
         if cliente_cpf:
-            queryset = queryset.filter(requerente_titular__cpf=cliente_cpf)
+            queryset = queryset.filter(cliente__cpf=cliente_cpf)
         return queryset
