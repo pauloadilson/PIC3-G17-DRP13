@@ -55,7 +55,7 @@ jobs:
         MICROSOFT_AUTH_TENANT_ID: ${{ secrets.MICROSOFT_AUTH_TENANT_ID }}
         MICROSOFT_AUTH_REDIRECT_URI: ${{ secrets.MICROSOFT_AUTH_REDIRECT_URI }}
         MICROSOFT_AUTH_CLIENT_EMAIL: ${{ secrets.MICROSOFT_AUTH_CLIENT_EMAIL }}
-        MICROSOFT_AUTH_SCOPES: ${{ secrets.MICROSOFT_AUTH_SCOPES }}
+        MICROSOFT_AUTH_SCOPES: "User.Read,mailboxsettings.read,Calendars.ReadWrite"
         DJANGO_SETTINGS_MODULE: ${{ secrets.DJANGO_SETTINGS_MODULE }}
         SESSION_COOKIE_SECURE: ${{ secrets.SESSION_COOKIE_SECURE }}
       run: |
