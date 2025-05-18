@@ -15,7 +15,10 @@ class Migration(migrations.Migration):
             name='Evento',
             fields=[
                 ('id', models.AutoField(primary_key=True, serialize=False)),
-                ('tipo', models.CharField(choices=[('atendimento', 'Atendimento'), ('pericia', 'Perícia'), ('prazo', 'Prazo')], max_length=20)),
+                ('tipo', models.CharField(choices=[
+                    ('atendimento', 'Atendimento'),
+                    ('pericia', 'Perícia'),
+                    ('prazo', 'Prazo')], max_length=20)),
                 ('titulo', models.CharField(max_length=100)),
                 ('descricao', models.TextField(blank=True, null=True)),
                 ('data_inicio', models.DateTimeField()),

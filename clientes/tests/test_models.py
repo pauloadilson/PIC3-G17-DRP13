@@ -2,9 +2,7 @@ from django.test import TestCase
 from clientes.models import Cliente
 from requerimentos.models import EstadoRequerimentoInicial, RequerimentoInicial, Servico
 
-from django.urls import reverse
 
-# Create your tests here.
 class TestModels(TestCase):
     def setUp(self):
         self.cliente1 = Cliente.objects.create(
@@ -15,7 +13,7 @@ class TestModels(TestCase):
             observacao_telefone="Recado com Júlio (vizinho)",
             telefone_whatsapp="18991234567",
             email="pauloadilson@gmail.com"
-        )  
+        )
         self.servico1 = Servico.objects.create(
             nome="Aposentadoria por Idade Urbana"
         )
@@ -28,7 +26,7 @@ class TestModels(TestCase):
             NB="456123456123456123",
             servico=self.servico1,
             data="2021-01-01",
-            estado= self.estado1,
+            estado=self.estado1,
         )
 
     def test_cliente_model(self):
@@ -46,4 +44,3 @@ class TestModels(TestCase):
         self.requerimento_inicial1.delete()
         self.cliente1.delete()
         self.assertEqual(self.cliente1.is_deleted, True)
-

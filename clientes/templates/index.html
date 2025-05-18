@@ -37,7 +37,7 @@
               </div>
             {% else %}
             <div class="card card-body text-center">
-                <h3 class="mb-0">Este é um site desenvolvido como atividade avaliativa para o Projeto Integrador em Computação II<br>
+                <h3 class="mb-0">Este é um site desenvolvido como atividade avaliativa para o Projeto Integrador em Computação III<br>
                 </h3>
             </div>
             {% endif %}
@@ -58,7 +58,7 @@
             events: [
                 {% for evento in agenda %}
                 {
-                  title: '{{ evento.titulo }}',
+                  title: '{{ evento.tipo|capfirst}}: {{ evento.titulo }}',
                   tipo: '{{ evento.tipo }}',
                   descricao: '{{ evento.descricao }}',
                   start: '{{ evento.data_inicio|date:"Y-m-d\TH:i:s" }}',

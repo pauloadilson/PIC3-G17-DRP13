@@ -28,7 +28,7 @@
             minTime:'09:00',
             maxTime:'18:00',
             theme:'dark',
-            minDate: 0
+            {% comment %} minDate: 0 {% endcomment %}
           });
           jQuery('.date_timepicker_end').datetimepicker({
             format:'d/m/Y H:i',
@@ -47,7 +47,7 @@
             format:'d/m/Y',
             theme:'dark',
             timepicker:false,
-            maxDate: 0
+            {% comment %} maxDate: 0 {% endcomment %}
           });
           // https://xdsoft.net/jqplugins/datetimepicker/
     </script>

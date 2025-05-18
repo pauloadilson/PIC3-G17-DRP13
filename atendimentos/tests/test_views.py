@@ -1,13 +1,15 @@
 from django.test import TransactionTestCase
 import uuid
-from django.urls import reverse, resolve
+from django.urls import reverse
 from django.utils import timezone
 from django.contrib.auth.models import User
 from clientes.models import Cliente
 from atendimentos.models import Atendimento
 
+
 def generate_unique_cpf():
     return str(uuid.uuid4().int)[:11]
+
 
 class TestAtendimentoViews(TransactionTestCase):
     def setUp(self):
@@ -15,7 +17,7 @@ class TestAtendimentoViews(TransactionTestCase):
         self.user.set_password("secretkey")
         self.user.save()
         self.client.login(username="testuser", password="secretkey")
-        
+
         self.cpf = generate_unique_cpf()
         self.cliente = Cliente.objects.create(
             cpf=self.cpf,
@@ -44,7 +46,7 @@ class TestAtendimentoViews(TransactionTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "form.html")
         self.assertEqual(response.context.get("title"), "Novo Atendimento")
-        
+
     def test_atendimento_cliente_create_view_GET(self):
         url = reverse("adicionar_atendimento_cliente", kwargs={"cpf": self.cliente.cpf})
         response = self.client.get(url)
@@ -73,7 +75,7 @@ class TestAtendimentoViews(TransactionTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "delete.html")
         self.assertEqual(response.context.get("title"), "Excluindo Atendimento")
-        
+
     def test_atendimento_create_view_POST(self):
         url = reverse("adicionar_atendimento_cliente", kwargs={"cpf": self.cliente.cpf})
         data = {
@@ -112,4 +114,3 @@ class TestAtendimentoViews(TransactionTestCase):
         self.assertRedirects(response, reverse("atendimentos"))
         with self.assertRaises(Atendimento.DoesNotExist):
             Atendimento.objects.get(pk=self.atendimento.id)
-
