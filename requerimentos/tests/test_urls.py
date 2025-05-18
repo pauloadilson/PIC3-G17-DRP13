@@ -152,7 +152,7 @@ class TestUrls(TransactionTestCase):
 
     def test_atualizar_exigencia_requerimento_inicial_url_resolves(self):
         exigencia_inicial = ExigenciaRequerimentoInicial.objects.create(
-            requerimento=self.requerimento_recurso,
+            requerimento=self.requerimento_inicial,
             data="2021-01-10",
             natureza=self.natureza,  # Assumes a Natureza instance with id=1 exists or use a dummy integer if not used in view tests
             estado=self.estado_exigencia,    # Assumes EstadoExigencia instance with id=1 exists
@@ -167,7 +167,7 @@ class TestUrls(TransactionTestCase):
 
     def test_excluir_exigencia_requerimento_inicial_url_resolves(self):
         exigencia_inicial = ExigenciaRequerimentoInicial.objects.create(
-            requerimento=self.requerimento_recurso,
+            requerimento=self.requerimento_inicial,
             data="2021-01-10",
             natureza=self.natureza,  # Assumes a Natureza instance with id=1 exists or use a dummy integer if not used in view tests
             estado=self.estado_exigencia,    # Assumes EstadoExigencia instance with id=1 exists

@@ -12,9 +12,12 @@ from atendimentos.models import Atendimento
 from clientes.models import Cliente
 from atendimentos.forms import AtendimentoModelForm
 from django.urls import reverse_lazy
-from atendimentos.serializers import AtendimentoSerializer
+from atendimentos.serializers import AtendimentoCompletoSerializer, AtendimentoSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
+from rest_framework import viewsets
+
+from requerimentos.models import Requerimento
 
 
 @method_decorator(login_required(login_url="login"), name="dispatch")
@@ -23,7 +26,7 @@ class AtendimentosListView(ListView):
     template_name = "atendimentos.html"
     context_object_name = "atendimentos"
     title = "Atendimentos"
-    ordering = ["data"]
+    ordering = ["-data"]
     paginate_by = 10
 
     def get_context_data(self, **kwargs):
@@ -41,11 +44,17 @@ class AtendimentoCreateView(CreateView):
 
     def get_initial(self):
         initial = super().get_initial()
+        print(self.kwargs)
         # Filtra o cliente titular do requerimento se is_deleted=False
         if "cpf" in self.kwargs:
             initial["cliente"] = Cliente.objects.filter(is_deleted=False).get(
                 cpf=self.kwargs["cpf"]
             )
+        if "pk" in self.kwargs:
+            requerimento = Requerimento.objects.get(
+                id=self.kwargs["pk"], is_deleted=False
+            )
+            initial["requerimento"] = requerimento
         return initial
 
     def get_context_data(self, **kwargs):
@@ -142,3 +151,21 @@ class AtendimentoRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
 
     def perform_create(self, serializer):
         serializer.save()
+
+
+class AtendimentoViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAuthenticated,)
+    queryset = Atendimento.objects.filter(is_deleted=False)
+    serializer_class = AtendimentoSerializer
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return AtendimentoCompletoSerializer
+        return super().get_serializer_class()
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        cliente_cpf = self.kwargs.get("cliente_cpf")
+        if cliente_cpf:
+            queryset = queryset.filter(cliente__cpf=cliente_cpf)
+        return queryset

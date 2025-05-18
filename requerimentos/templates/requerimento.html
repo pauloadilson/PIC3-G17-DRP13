@@ -87,9 +87,18 @@
                     <a class="btn btn-light"   href="{% url 'ciencia_requerimento_inicial' cliente.cpf requerimento.id %}" role="button">
                         Ciência {% bs_icon 'check2-circle' %}
                     </a>
+                    <a class="btn btn-light" href="{% url 'adicionar_atendimento_cliente_requerimento' cliente.cpf requerimento.id %}" role="button">
+                        Novo Atendimento
+                    </a>
                 {% elif requerimento.get_class_name == 'RequerimentoRecurso' %}
                      <a class="btn btn-light"   href="{% url 'adicionar_exigencia_requerimento_recurso' cliente.cpf requerimento.id %}" role="button">
                         Nova Exigência
+                    </a>
+                    <a class="btn btn-light"   href="{% url 'ciencia_requerimento_recurso' cliente.cpf requerimento.id %}" role="button">
+                        Ciência {% bs_icon 'check2-circle' %}
+                    </a>
+                    <a class="btn btn-light" href="{% url 'adicionar_atendimento_cliente_requerimento' cliente.cpf requerimento.id %}" role="button">
+                        Novo Atendimento
                     </a>
                 {% endif %}
             </p>
@@ -128,7 +137,7 @@
                             {% endif %}
                         {% elif requerimento.get_class_name == 'RequerimentoRecurso' %}
                             {% if exigencias %}    
-                                {% for exigencia in exigencias_requerimento %}
+                                {% for exigencia in exigencias %}
                                     <tr>
                                         <td>{{ exigencia.data|date:"d/m/Y" }}</td>
                                         <td>{{ exigencia.natureza }}</td>

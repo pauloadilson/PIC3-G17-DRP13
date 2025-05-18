@@ -141,13 +141,47 @@ class RequerimentoRecursoModelForm(forms.ModelForm):
             return super(RequerimentoRecursoModelForm, self).save(commit=commit)
 
 
-class ExigenciaModelForm(forms.ModelForm):
+# class ExigenciaModelForm(forms.ModelForm):
+#     class Meta:
+#         model = Exigencia
+#         fields = ("requerimento", "data", "natureza", "estado")
+
+#     def __init__(self, *args, **kwargs):
+#         super(ExigenciaModelForm, self).__init__(*args, **kwargs)
+#         self.fields['estado'].queryset = EstadoExigencia.objects.all()
+#         if self.instance and self.instance.pk:
+#             self.fields['requerimento'].disabled = True
+
+#         self.helper = FormHelper()
+#         self.helper.layout = Layout(
+#             Field("requerimento", css_class="form-control", type="hidden"),
+#             Field(
+#                 "data", css_class="form-control date_picker", placeholder="dd/mm/aaaa"
+#             ),
+#             Field("natureza", css_class="form-control"),
+#             Field("estado", css_class="form-control"),
+#             FormActions(
+#                 Submit("submit", "Salvar", css_class="btn btn-primary"),
+#                 Button(
+#                     "button",
+#                     "Voltar",
+#                     css_class="btn btn-secondary",
+#                     onclick="window.history.back()",
+#                 ),
+#             ),
+#         )
+
+#     def save(self, commit=True):
+#         return super(ExigenciaModelForm, self).save(commit=commit)
+
+
+class ExigenciaRequerimentoInicialModelForm(forms.ModelForm):
     class Meta:
-        model = Exigencia
+        model = ExigenciaRequerimentoInicial
         fields = ("requerimento", "data", "natureza", "estado")
 
     def __init__(self, *args, **kwargs):
-        super(ExigenciaModelForm, self).__init__(*args, **kwargs)
+        super(ExigenciaRequerimentoInicialModelForm, self).__init__(*args, **kwargs)
         self.fields['estado'].queryset = EstadoExigencia.objects.all()
         if self.instance and self.instance.pk:
             self.fields['requerimento'].disabled = True
@@ -172,19 +206,41 @@ class ExigenciaModelForm(forms.ModelForm):
         )
 
     def save(self, commit=True):
-        return super(ExigenciaModelForm, self).save(commit=commit)
+        return super(ExigenciaRequerimentoInicialModelForm, self).save(commit=commit)
 
 
-class ExigenciaRequerimentoInicialModelForm(ExigenciaModelForm):
-    class Meta:
-        model = ExigenciaRequerimentoInicial
-        fields = ("requerimento", "data", "natureza", "estado")
-
-
-class ExigenciaRequerimentoRecursoModelForm(ExigenciaModelForm):
+class ExigenciaRequerimentoRecursoModelForm(forms.ModelForm):
     class Meta:
         model = ExigenciaRequerimentoRecurso
         fields = ("requerimento", "data", "natureza", "estado")
+
+    def __init__(self, *args, **kwargs):
+        super(ExigenciaRequerimentoRecursoModelForm, self).__init__(*args, **kwargs)
+        self.fields['estado'].queryset = EstadoExigencia.objects.all()
+        if self.instance and self.instance.pk:
+            self.fields['requerimento'].disabled = True
+
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            Field("requerimento", css_class="form-control", type="hidden"),
+            Field(
+                "data", css_class="form-control date_picker", placeholder="dd/mm/aaaa"
+            ),
+            Field("natureza", css_class="form-control"),
+            Field("estado", css_class="form-control"),
+            FormActions(
+                Submit("submit", "Salvar", css_class="btn btn-primary"),
+                Button(
+                    "button",
+                    "Voltar",
+                    css_class="btn btn-secondary",
+                    onclick="window.history.back()",
+                ),
+            ),
+        )
+
+    def save(self, commit=True):
+        return super(ExigenciaRequerimentoRecursoModelForm, self).save(commit=commit)
 
 
 # Formulário personalizado para EstadoRequerimentoInicial

@@ -120,7 +120,6 @@ class Natureza(models.Model):
 
 class Exigencia(models.Model):
     id = models.AutoField(primary_key=True)  # ID da exigÃªncia
-    requerimento = models.ForeignKey(Requerimento, on_delete=models.PROTECT, related_name='requerimento_exigencia')  # Relacionamento com o modelo Requerimento
     data = models.DateField()  # Data da exigÃªncia
     natureza = models.ForeignKey(Natureza, on_delete=models.PROTECT, related_name='natureza_exigencia')  # Natureza da exigecia Ex: Documentacao, Informacao
     estado = models.ForeignKey(EstadoExigencia, on_delete=models.PROTECT, related_name='estado_exigencia')  # Estado do recurso Ex: Pendente, Conclui­do
@@ -128,7 +127,7 @@ class Exigencia(models.Model):
     is_deleted = models.BooleanField(default=False)
 
     def __str__(self) -> str:
-        return f'Exigência: id nº {self.id} do NB nº {self.requerimento.NB} de {self.requerimento.requerente_titular.nome}, {self.requerimento.requerente_titular.cpf}'
+        pass
 
     def get_class_name(self):
         return self.__class__.__name__
@@ -140,12 +139,18 @@ class Exigencia(models.Model):
 
 class ExigenciaRequerimentoInicial(Exigencia):
     # herdar de Exigencia
-    pass
+    requerimento = models.ForeignKey(RequerimentoInicial, on_delete=models.PROTECT, related_name='requerimento_inicial_exigencia')  # Relacionamento com o modelo Requerimento
+
+    def __str__(self) -> str:
+        return f'Exigência: id nº {self.id} do NB nº {self.requerimento.NB} de {self.requerimento.requerente_titular.nome}, {self.requerimento.requerente_titular.cpf}'
 
 
 class ExigenciaRequerimentoRecurso(Exigencia):
     # herdar de Exigencia
-    pass
+    requerimento = models.ForeignKey(RequerimentoRecurso, on_delete=models.PROTECT, related_name='requerimento_recurso_exigencia')  # Relacionamento com o modelo Requerimento
+
+    def __str__(self) -> str:
+        return f'Exigência: id nº {self.id} do NB nº {self.requerimento.NB} de {self.requerimento.requerente_titular.nome}, {self.requerimento.requerente_titular.cpf}'
 
 
 class HistoricoMudancaEstadoRequerimentoInicial(models.Model):
