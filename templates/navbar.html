@@ -45,13 +45,15 @@
           </li>
           {% if request.user.groups.all.0.name != "Secretarias" %}
           <li class="nav-item">
-            <a class="nav-link" aria-disabled="true" href="https://cpprev-analytics-dev-90179090fa77.herokuapp.com/" target="_blank">Dashboard</a>
+            <span class='tooltip-text' id="tooltip-dashboard-text">Alt+6</span>
+            <a class="nav-link" id="dashboard-link" aria-describedby="dashboard-link" href="https://cpprev-analytics-dev-90179090fa77.herokuapp.com/" target="_blank">Dashboard</a>
           </li>
           {% endif %}
           <li class="nav-item">
             <form method="POST" action="{% url 'logout' %}">
               {% csrf_token %}
-              <button type="submit" class="nav-link text-danger-emphasis">Sair</button>
+              <span class='tooltip-text' id="tooltip-logout-text">Alt+7</span>
+              <button type="submit" id="logout-button" class="nav-link text-danger-emphasis">Sair</button>
             </form>
           </li>
         </ul>
@@ -94,6 +96,10 @@
             document.getElementById('atendimentos-link').click();
         } else if (event.altKey && event.key === '5') {
             document.getElementById('agenda-link').click();
+        } else if (event.altKey && event.key === '6') {
+            document.getElementById('dashboard-link').click();        } else if (event.altKey && event.key === '6') {
+        } else if (event.altKey && event.key === '7') {
+            document.getElementById('login-link').click();
         } else if (event.altKey && event.key === '0') {
             document.getElementById('login-link').click();
         } else if (event.key === 'Escape') {

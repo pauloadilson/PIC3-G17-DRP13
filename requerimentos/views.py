@@ -9,6 +9,7 @@ from django.views.generic.edit import FormView
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from clientes.models import Cliente
+from cpprev.permissions import GlobalDefaultPermission
 from requerimentos.models import (
     HistoricoMudancaEstadoRequerimentoInicial,
     HistoricoMudancaEstadoRequerimentoRecurso,
@@ -781,20 +782,8 @@ class MudancaEstadoRequerimentoRecursoDeleteView(DeleteView):
         )
 
 
-class RequerimentoRecursoCreateListAPIView(ListCreateAPIView):
-    permission_classes = (IsAuthenticated,)
-    queryset = RequerimentoRecurso.objects.all()
-    serializer_class = RequerimentoRecursoSerializer
-
-    def get_queryset(self):
-        return RequerimentoRecurso.objects.filter(is_deleted=False)
-
-    def perform_create(self, serializer):
-        serializer.save()
-
-
 class RequerimentoInicialViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, GlobalDefaultPermission)
     queryset = RequerimentoInicial.objects.filter(is_deleted=False)
     serializer_class = RequerimentoInicialSerializer
 
@@ -817,7 +806,7 @@ class RequerimentoInicialViewSet(viewsets.ModelViewSet):
 
 
 class RequerimentoRecursoViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, GlobalDefaultPermission)
     queryset = RequerimentoRecurso.objects.filter(is_deleted=False)
     serializer_class = RequerimentoRecursoSerializer
 
@@ -841,7 +830,7 @@ class RequerimentoRecursoViewSet(viewsets.ModelViewSet):
 
 
 class ExigenciaRequerimentoInicialViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, GlobalDefaultPermission)
     serializer_class = ExigenciaRequerimentoInicialSerializer
 
     def get_queryset(self):
@@ -853,7 +842,7 @@ class ExigenciaRequerimentoInicialViewSet(viewsets.ModelViewSet):
 
 
 class ExigenciaRequerimentoRecursoViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, GlobalDefaultPermission)
     queryset = ExigenciaRequerimentoRecurso.objects.filter(is_deleted=False)
     serializer_class = ExigenciaRequerimentoRecursoSerializer
 
@@ -866,7 +855,7 @@ class ExigenciaRequerimentoRecursoViewSet(viewsets.ModelViewSet):
 
 
 class HistoricoMudancaEstadoRequerimentoInicialViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, GlobalDefaultPermission)
     serializer_class = HistoricoMudancaEstadoRequerimentoInicialSerializer
 
     def get_queryset(self):
@@ -878,7 +867,7 @@ class HistoricoMudancaEstadoRequerimentoInicialViewSet(viewsets.ModelViewSet):
 
 
 class HistoricoMudancaEstadoRequerimentoRecursoViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, GlobalDefaultPermission)
     serializer_class = HistoricoMudancaEstadoRequerimentoRecursoSerializer
 
     def get_queryset(self):

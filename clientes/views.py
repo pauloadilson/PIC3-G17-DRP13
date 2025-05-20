@@ -13,6 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from agenda.models import Evento
 from clientes.models import Cliente
+from cpprev.permissions import GlobalDefaultPermission
 from requerimentos.models import (
     RequerimentoInicial,
     RequerimentoRecurso,
@@ -71,6 +72,7 @@ class ClienteCreateView(CreateView):
     template_name = "form.html"
     form_class = ClienteModelForm
     title = "Novo Cliente"
+    permission_required = "clientes.create_cliente"
 
     def get_context_data(self, **kwargs):
         context = super(ClienteCreateView, self).get_context_data(**kwargs)
@@ -185,7 +187,7 @@ class ClienteDeleteView(DeleteView):
 
 
 class ClienteViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, GlobalDefaultPermission)
     queryset = Cliente.objects.filter(is_deleted=False)
     serializer_class = ClienteSerializer
     lookup_field = 'cpf'
