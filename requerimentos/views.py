@@ -36,9 +36,9 @@ from django.utils import timezone
 from requerimentos.serializers import (
     HistoricoMudancaEstadoRequerimentoInicialSerializer,
     HistoricoMudancaEstadoRequerimentoRecursoSerializer,
-    RequerimentoInicialCompletoSerializer,
+    RequerimentoInicialRetrieveSerializer,
     RequerimentoInicialSerializer,
-    RequerimentoRecursoCompletoSerializer,
+    RequerimentoRecursoRetrieveSerializer,
     RequerimentoRecursoSerializer,
     ExigenciaRequerimentoInicialSerializer,
     ExigenciaRequerimentoRecursoSerializer
@@ -789,7 +789,7 @@ class RequerimentoInicialViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
-            return RequerimentoInicialCompletoSerializer
+            return RequerimentoInicialRetrieveSerializer
         return super().get_serializer_class()
 
     def get_queryset(self):
@@ -812,7 +812,7 @@ class RequerimentoRecursoViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
-            return RequerimentoRecursoCompletoSerializer
+            return RequerimentoRecursoRetrieveSerializer
         return super().get_serializer_class()
 
     def get_queryset(self):
@@ -831,10 +831,11 @@ class RequerimentoRecursoViewSet(viewsets.ModelViewSet):
 
 class ExigenciaRequerimentoInicialViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, GlobalDefaultPermission)
+    queryset = ExigenciaRequerimentoInicial.objects.filter(is_deleted=False)
     serializer_class = ExigenciaRequerimentoInicialSerializer
 
     def get_queryset(self):
-        qs = ExigenciaRequerimentoInicial.objects.filter(is_deleted=False)
+        qs = super().get_queryset()
         requerimento_id = self.kwargs.get("req_inicial_pk")
         if requerimento_id:
             qs = qs.filter(requerimento__id=requerimento_id)
@@ -847,7 +848,7 @@ class ExigenciaRequerimentoRecursoViewSet(viewsets.ModelViewSet):
     serializer_class = ExigenciaRequerimentoRecursoSerializer
 
     def get_queryset(self):
-        qs = ExigenciaRequerimentoRecurso.objects.filter(is_deleted=False)
+        qs = super().get_queryset()
         requerimento_id = self.kwargs.get("req_inicial_pk")
         if requerimento_id:
             qs = qs.filter(requerimento__id=requerimento_id)
@@ -856,10 +857,11 @@ class ExigenciaRequerimentoRecursoViewSet(viewsets.ModelViewSet):
 
 class HistoricoMudancaEstadoRequerimentoInicialViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, GlobalDefaultPermission)
+    queryset = HistoricoMudancaEstadoRequerimentoInicial.objects.filter(is_deleted=False)
     serializer_class = HistoricoMudancaEstadoRequerimentoInicialSerializer
 
     def get_queryset(self):
-        qs = HistoricoMudancaEstadoRequerimentoInicial.objects.filter(is_deleted=False)
+        qs = super().get_queryset()
         requerimento_id = self.kwargs.get("req_inicial_pk")
         if requerimento_id:
             qs = qs.filter(requerimento__id=requerimento_id)
@@ -868,10 +870,11 @@ class HistoricoMudancaEstadoRequerimentoInicialViewSet(viewsets.ModelViewSet):
 
 class HistoricoMudancaEstadoRequerimentoRecursoViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, GlobalDefaultPermission)
+    queryset = HistoricoMudancaEstadoRequerimentoRecurso.objects.filter(is_deleted=False)
     serializer_class = HistoricoMudancaEstadoRequerimentoRecursoSerializer
 
     def get_queryset(self):
-        qs = HistoricoMudancaEstadoRequerimentoRecurso.objects.filter(is_deleted=False)
+        qs = super().get_queryset()
         requerimento_id = self.kwargs.get("req_recurso_pk")
         if requerimento_id:
             qs = qs.filter(requerimento__id=requerimento_id)

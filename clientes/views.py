@@ -25,7 +25,10 @@ from itertools import chain
 from django.utils import timezone
 
 from rest_framework import viewsets
-from clientes.serializers import ClienteCompletoSerializer, ClienteSerializer
+from clientes.serializers import (
+    ClienteRetrieveSerializer,
+    ClienteSerializer
+)
 
 
 class IndexView(TemplateView):
@@ -194,7 +197,7 @@ class ClienteViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
-            return ClienteCompletoSerializer
+            return ClienteRetrieveSerializer
         return super().get_serializer_class()
 
     def get_queryset(self):

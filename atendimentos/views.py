@@ -12,7 +12,7 @@ from atendimentos.models import Atendimento
 from clientes.models import Cliente
 from atendimentos.forms import AtendimentoModelForm
 from django.urls import reverse_lazy
-from atendimentos.serializers import AtendimentoCompletoSerializer, AtendimentoSerializer
+from atendimentos.serializers import AtendimentoRetrieveSerializer, AtendimentoSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 
@@ -136,7 +136,7 @@ class AtendimentoViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
-            return AtendimentoCompletoSerializer
+            return AtendimentoRetrieveSerializer
         return super().get_serializer_class()
 
     def get_queryset(self):
