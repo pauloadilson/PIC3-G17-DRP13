@@ -1,5 +1,5 @@
-# PI002-G17-DRP13
-Projeto Integrador II dos cursos do Eixo da Computação da UNIVESP
+# PIC3-G17-DRP13
+Projeto Integrador em Computação III do Eixo de Computação da UNIVESP
 
 Integrantes:
 
@@ -10,8 +10,6 @@ Elissandro Santos Batista
 Fábio Henrique Soares Souza
 
 Fausto Rogério Manoel Leme
-
-Gabriel Turazzi Duarte
 
 Manoel Rodrigues de Oliveira Junior
 
