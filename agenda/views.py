@@ -12,6 +12,7 @@ from django.views.generic import (
 from agenda.models import Evento
 from django.urls import reverse_lazy
 from agenda.forms import EventoForm
+from cpprev.permissions import GlobalDefaultPermission
 from microsoft_authentication.graph_helper import criar_evento_no_microsoft_graph
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -137,6 +138,6 @@ class PrazoView(TemplateView):
 
 
 class EventoViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, GlobalDefaultPermission)
     queryset = Evento.objects.all()
     serializer_class = EventoSerializer

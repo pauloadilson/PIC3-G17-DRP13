@@ -15,39 +15,35 @@ from requerimentos.models import (
 class EstadoRequerimentoInicialSerializer(serializers.ModelSerializer):
     class Meta:
         model = EstadoRequerimentoInicial
-        fields = ["nome"]
+        fields = '__all__'
 
 
 class EstadoRequerimentoRecursoSerializer(serializers.ModelSerializer):
     class Meta:
         model = EstadoRequerimentoRecurso
-        fields = ["nome"]
+        fields = '__all__'
 
 
 class ServicoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Servico
-        fields = ["nome"]
+        fields = '__all__'
 
 
 class RequerimentoInicialSerializer(serializers.ModelSerializer):
-    servico_nome = serializers.CharField(source='servico.nome', read_only=True)
-    estado_nome = serializers.CharField(source='estado.nome', read_only=True)
-    requerente_titular_nome = serializers.CharField(source='requerente_titular.nome', read_only=True)
-
     class Meta:
         model = RequerimentoInicial
         fields = '__all__'
 
 
-class RequerimentoInicialCompletoSerializer(serializers.ModelSerializer):
-    servico_nome = serializers.CharField(source='servico.nome', read_only=True)
-    estado_nome = serializers.CharField(source='estado.nome', read_only=True)
-    requerente_titular_nome = serializers.CharField(source='requerente_titular.nome', read_only=True)
+class RequerimentoInicialRetrieveSerializer(serializers.ModelSerializer):
+    servico = ServicoSerializer(read_only=True)
+    estado = EstadoRequerimentoInicialSerializer(read_only=True)
 
     quantidade_entidades_dependentes = serializers.SerializerMethodField(read_only=True)
     exigencias = serializers.SerializerMethodField(read_only=True)
     mudancas_estado = serializers.SerializerMethodField(read_only=True)
+    requerente_titular = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = RequerimentoInicial
@@ -65,25 +61,27 @@ class RequerimentoInicialCompletoSerializer(serializers.ModelSerializer):
         queryset = HistoricoMudancaEstadoRequerimentoInicial.objects.filter(requerimento__id=obj.id)
         return HistoricoMudancaEstadoRequerimentoInicialSerializer(queryset, many=True).data
 
+    def get_requerente_titular(self, obj):
+        from clientes.serializers import ClienteSerializer
+
+        queryset = obj.requerente_titular
+        return ClienteSerializer(queryset).data
+
 
 class RequerimentoRecursoSerializer(serializers.ModelSerializer):
-    servico_nome = serializers.CharField(source='servico.nome', read_only=True)
-    estado_nome = serializers.CharField(source='estado.nome', read_only=True)
-    requerente_titular_nome = serializers.CharField(source='requerente_titular.nome', read_only=True)
-
     class Meta:
         model = RequerimentoRecurso
         fields = '__all__'
 
 
-class RequerimentoRecursoCompletoSerializer(serializers.ModelSerializer):
-    servico_nome = serializers.CharField(source='servico.nome', read_only=True)
-    estado_nome = serializers.CharField(source='estado.nome', read_only=True)
-    requerente_titular_nome = serializers.CharField(source='requerente_titular.nome', read_only=True)
+class RequerimentoRecursoRetrieveSerializer(serializers.ModelSerializer):
+    servico = ServicoSerializer(read_only=True)
+    estado = EstadoRequerimentoRecursoSerializer(read_only=True)
 
     quantidade_entidades_dependentes = serializers.SerializerMethodField(read_only=True)
     exigencias = serializers.SerializerMethodField(read_only=True)
     mudancas_estado = serializers.SerializerMethodField(read_only=True)
+    requerente_titular = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = RequerimentoRecurso
@@ -100,6 +98,12 @@ class RequerimentoRecursoCompletoSerializer(serializers.ModelSerializer):
     def get_mudancas_estado(self, obj):
         queryset = HistoricoMudancaEstadoRequerimentoRecurso.objects.filter(requerimento__id=obj.id)
         return HistoricoMudancaEstadoRequerimentoRecursoSerializer(queryset, many=True).data
+
+    def get_requerente_titular(self, obj):
+        from clientes.serializers import ClienteSerializer
+
+        queryset = obj.requerente_titular
+        return ClienteSerializer(queryset).data
 
 
 class ExigenciaRequerimentoInicialSerializer(serializers.ModelSerializer):

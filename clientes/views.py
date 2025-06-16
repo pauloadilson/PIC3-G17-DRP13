@@ -13,6 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from agenda.models import Evento
 from clientes.models import Cliente
+from cpprev.permissions import GlobalDefaultPermission
 from requerimentos.models import (
     RequerimentoInicial,
     RequerimentoRecurso,
@@ -24,7 +25,10 @@ from itertools import chain
 from django.utils import timezone
 
 from rest_framework import viewsets
-from clientes.serializers import ClienteCompletoSerializer, ClienteSerializer
+from clientes.serializers import (
+    ClienteRetrieveSerializer,
+    ClienteSerializer
+)
 
 
 class IndexView(TemplateView):
@@ -71,6 +75,7 @@ class ClienteCreateView(CreateView):
     template_name = "form.html"
     form_class = ClienteModelForm
     title = "Novo Cliente"
+    permission_required = "clientes.create_cliente"
 
     def get_context_data(self, **kwargs):
         context = super(ClienteCreateView, self).get_context_data(**kwargs)
@@ -185,14 +190,14 @@ class ClienteDeleteView(DeleteView):
 
 
 class ClienteViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, GlobalDefaultPermission)
     queryset = Cliente.objects.filter(is_deleted=False)
     serializer_class = ClienteSerializer
     lookup_field = 'cpf'
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
-            return ClienteCompletoSerializer
+            return ClienteRetrieveSerializer
         return super().get_serializer_class()
 
     def get_queryset(self):

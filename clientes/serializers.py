@@ -18,7 +18,7 @@ class ClienteSerializer(serializers.ModelSerializer):
         return quantidade
 
 
-class ClienteCompletoSerializer(serializers.ModelSerializer):
+class ClienteRetrieveSerializer(serializers.ModelSerializer):
     quantidade_entidades_dependentes = serializers.SerializerMethodField(read_only=True)
     atendimentos = serializers.SerializerMethodField(read_only=True)
     requerimentos = serializers.SerializerMethodField(read_only=True)
@@ -34,15 +34,12 @@ class ClienteCompletoSerializer(serializers.ModelSerializer):
 
     def get_atendimentos(self, obj):
         queryset = Atendimento.objects.filter(cliente__cpf=obj.cpf)
-        # queryset = obj.cliente_atendimento.filter(is_deleted=False)
         return AtendimentoSerializer(queryset, many=True).data
 
     def get_requerimentos(self, obj):
         queryset = RequerimentoInicial.objects.filter(requerente_titular__cpf=obj.cpf)
-        # queryset = obj.cliente_titular_requerimento.filter(is_deleted=False)
         return RequerimentoInicialSerializer(queryset, many=True).data
 
     def get_recursos(self, obj):
         queryset = RequerimentoRecurso.objects.filter(requerente_titular__cpf=obj.cpf)
-        # queryset = obj.cliente_titular_requerimento.filter(is_deleted=False)
         return RequerimentoRecursoSerializer(queryset, many=True).data

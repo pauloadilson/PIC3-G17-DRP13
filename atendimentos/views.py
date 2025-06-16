@@ -12,11 +12,11 @@ from atendimentos.models import Atendimento
 from clientes.models import Cliente
 from atendimentos.forms import AtendimentoModelForm
 from django.urls import reverse_lazy
-from atendimentos.serializers import AtendimentoCompletoSerializer, AtendimentoSerializer
+from atendimentos.serializers import AtendimentoRetrieveSerializer, AtendimentoSerializer
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework import viewsets
 
+from cpprev.permissions import GlobalDefaultPermission
 from requerimentos.models import Requerimento
 
 
@@ -129,38 +129,14 @@ class AtendimentoDeleteView(DeleteView):
         return reverse_lazy("atendimentos")
 
 
-class AtendimentoCreateListAPIView(ListCreateAPIView):
-    permission_classes = (IsAuthenticated,)
-    queryset = Atendimento.objects.all()
-    serializer_class = AtendimentoSerializer
-
-    def get_queryset(self):
-        return Atendimento.objects.filter(is_deleted=False)
-
-    def perform_create(self, serializer):
-        serializer.save()
-
-
-class AtendimentoRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
-    permission_classes = (IsAuthenticated,)
-    queryset = Atendimento.objects.all()
-    serializer_class = AtendimentoSerializer
-
-    def get_queryset(self):
-        return Atendimento.objects.filter(is_deleted=False)
-
-    def perform_create(self, serializer):
-        serializer.save()
-
-
 class AtendimentoViewSet(viewsets.ModelViewSet):
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, GlobalDefaultPermission)
     queryset = Atendimento.objects.filter(is_deleted=False)
     serializer_class = AtendimentoSerializer
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
-            return AtendimentoCompletoSerializer
+            return AtendimentoRetrieveSerializer
         return super().get_serializer_class()
 
     def get_queryset(self):
