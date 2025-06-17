@@ -14,7 +14,7 @@ class AtendimentoSerializer(serializers.ModelSerializer):
         return value
 
 
-class AtendimentoCompletoSerializer(serializers.ModelSerializer):
+class AtendimentoRetrieveSerializer(serializers.ModelSerializer):
     cliente = serializers.SerializerMethodField(read_only=True)
 
     class Meta:

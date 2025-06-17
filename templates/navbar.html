@@ -26,18 +26,19 @@
               <a class="nav-link" id="clientes-link" aria-describedby="clientes-link" href="{% url 'clientes' %}">Clientes</a>
             </div>
           </li>
+          <li>
           <div class='tooltip-link' id="tooltip-prazos-link" role="prazos-link">
             <span class='tooltip-text' id="tooltip-prazos-text">Alt+3</span>
             <a class="nav-link" id="prazos-link" aria-describedby="prazos-link" href="{% url 'prazos' %}">Prazos</a>
           </div>
           </li>
-          </li>
+          <li>
           <div class='tooltip-link' id="tooltip-atendimentos-link" role="atendimentos-link">
             <span class='tooltip-text' id="tooltip-atendimentos-text">Alt+4</span>
             <a  class="nav-link" id="atendimentos-link" aria-describedby="atendimentos-link" href="{% url 'atendimentos' %}">Atendimentos</a>
           </div>  
           </li>
-          </li>
+          <li>
           <div class='tooltip-link' id="tooltip-agenda-link" role="agenda-link">
             <span class='tooltip-text' id="tooltip-agenda-text">Alt+5</span>
             <a class="nav-link" id="agenda-link" aria-describedby="agenda-link" href="{% url 'agenda' %}">Agenda</a>
@@ -45,14 +46,20 @@
           </li>
           {% if request.user.groups.all.0.name != "Secretarias" %}
           <li class="nav-item">
-            <a class="nav-link" aria-disabled="true" href="https://cpprev-analytics-dev-90179090fa77.herokuapp.com/" target="_blank">Dashboard</a>
+          <div class='tooltip-link' id="tooltip-dashboard-link" role="dashboard-link">
+            <span class='tooltip-text' id="tooltip-dashboard-text">Alt+6</span>
+            <a class="nav-link" id="dashboard-link" aria-describedby="dashboard-link" href="https://cpprev-analytics-dev-90179090fa77.herokuapp.com/" target="_blank">Dashboard</a>
+          </div>
           </li>
           {% endif %}
           <li class="nav-item">
+          <div class='tooltip-link' id="tooltip-logout-link" role="logout-link">
+            <span class='tooltip-text' id="tooltip-logout-text">Alt+7</span>
             <form method="POST" action="{% url 'logout' %}">
               {% csrf_token %}
-              <button type="submit" class="nav-link text-danger-emphasis">Sair</button>
+              <button type="submit" id="logout-button" class="nav-link text-danger-emphasis">Sair</button>
             </form>
+          </div>
           </li>
         </ul>
         <form  class="d-flex" role="search" method="GET" action="{% url 'clientes' %}">
@@ -70,6 +77,8 @@
       prazos: $('#tooltip-prazos-text'),
       atendimentos: $('#tooltip-atendimentos-text'),
       agenda: $('#tooltip-agenda-text'),
+      dashboard: $('#tooltip-dashboard-text'),
+      logout: $('#tooltip-logout-text'),
       login: $('#tooltip-login-text')
   };
 
@@ -94,6 +103,10 @@
             document.getElementById('atendimentos-link').click();
         } else if (event.altKey && event.key === '5') {
             document.getElementById('agenda-link').click();
+        } else if (event.altKey && event.key === '6') {
+            document.getElementById('dashboard-link').click();        
+        } else if (event.altKey && event.key === '7') {
+            document.getElementById('logout-button').click();
         } else if (event.altKey && event.key === '0') {
             document.getElementById('login-link').click();
         } else if (event.key === 'Escape') {
