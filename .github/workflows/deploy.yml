@@ -1,0 +1,45 @@
+# Nome do workflow que aparecerá na aba "Actions" do GitHub
+name: Build and Push Docker Image
+
+# Define o gatilho: este workflow roda em todo push para a branch 'deploy-dev'
+on:
+  push:
+    branches:
+      - dev-container
+    #   - deploy-dev
+
+jobs:
+  # Define um único "job" (trabalho) chamado 'build-and-push'
+  build-and-push:
+    # O job vai rodar em uma máquina virtual Ubuntu fornecida pelo GitHub
+    runs-on: ubuntu-latest
+
+    steps:
+      # Passo 1: Faz o checkout do código do seu repositório
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      # Passo 2: Faz o login no Docker Hub usando os segredos que configuramos
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Passo 3: Extrai metadados (como tags) da imagem Docker
+      # Isso cria uma tag para a imagem baseada no nome da branch. Ex: seu-usuario/seu-repo:deploy-dev
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          # Seu repositório no Docker Hub
+          images: pauloadilson/cpprev
+
+      # Passo 4: Constrói a imagem Docker e faz o push para o Docker Hub
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
