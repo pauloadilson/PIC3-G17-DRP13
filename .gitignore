@@ -168,3 +168,4 @@ msedgedriver_downloader.exe
 msedgedriver.exe
 
 .vscode/
+staticfiles/
