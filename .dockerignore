@@ -1,6 +1,9 @@
 .git
 .gitignore
 .env
+.env.prod
+.env.test
+.env.dev
 .venv/
 __pycache__/
 *.pyc
