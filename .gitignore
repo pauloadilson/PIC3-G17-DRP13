@@ -172,3 +172,4 @@ msedgedriver.exe
 
 .vscode/
 staticfiles/
+.scripts

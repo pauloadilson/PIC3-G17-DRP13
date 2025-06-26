@@ -210,16 +210,7 @@ class ClienteDeleteView(DeleteView):
 class ClienteViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, GlobalDefaultPermission)
     cache_key = 'lista_de_clientes'
-    queryset = cache.get(cache_key)
-    if not queryset:
-        print("--- CACHE MISS --- Buscando do banco e salvando no Redis.")
-        # If not in cache, fetch from the database
-        # This will only happen once, subsequent requests will use the cached data
-        queryset = Cliente.objects.filter(is_deleted=False).order_by("cpf")
-        cache.set(cache_key, queryset, 900)
-    else:
-        # Se 'clientes' não é None, os dados vieram do cache!
-        print("+++ CACHE HIT +++ Servindo a lista de clientes diretamente do Redis!")
+    queryset = Cliente.objects.filter(is_deleted=False).order_by("nome")
     serializer_class = ClienteSerializer
     lookup_field = 'cpf'
 
@@ -229,7 +220,15 @@ class ClienteViewSet(viewsets.ModelViewSet):
         return super().get_serializer_class()
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        cache_key = 'lista_de_clientes_api'
+        queryset = cache.get(cache_key)
+        if not queryset:
+            print("--- API CACHE MISS --- Buscando do banco e salvando no Redis.")
+            queryset = super().get_queryset()
+            cache.set(cache_key, queryset, 900)
+        else:
+            # Se 'clientes' não é None, os dados vieram do cache!
+            print("+++ API CACHE HIT +++ Servindo a lista de clientes diretamente do Redis!")
         if self.action == 'retrieve':
             queryset = queryset.prefetch_related(
                 'cliente_atendimento',
