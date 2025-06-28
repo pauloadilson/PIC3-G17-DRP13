@@ -41,16 +41,19 @@ ENV PATH="/opt/venv/bin:$PATH"
 RUN addgroup --system app && adduser --system --group app
 
 # Define o diretório de trabalho da aplicação
-WORKDIR /home/cpprev/web
+WORKDIR /cpprev
 
 # Copia o ambiente virtual com as dependências já instaladas do estágio 'builder'
 COPY --from=builder /opt/venv /opt/venv
 
-# Copie todo o código da aplicaçãoo para o diretório de trabalho no contêiner
-COPY . .
+# Copia todo o código da aplicação para o diretório de trabalho no contêiner
+COPY . /cpprev
+
+# Cria o diretório de estáticos para que o volume possa herdar as permissões corretas
+RUN mkdir -p /cpprev/staticfiles
 
 # Define a propriedade dos arquivos para o usuário não-root
-RUN chown -R app:app /home/cpprev/web
+RUN chown -R app:app /cpprev
 
 # Muda para o usuário não-root
 USER app

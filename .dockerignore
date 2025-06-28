@@ -8,4 +8,9 @@
 __pycache__/
 *.pyc
 docker-compose.yml
+docker-compose*.yml
 README.md
+.github/
+.vscode/
+.scripts
+.flake8
