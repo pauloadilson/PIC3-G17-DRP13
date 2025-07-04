@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: cpprev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      initContainers:
+      - name: collect-static
+        image: pauloadilson/cpprev:dev-container-redis
+        # This command runs before the main 'web' container starts. It uses a
+        # shell to ensure Django can connect to Redis if needed and then
+        # collects all static files into the shared volume.
+        command: ["/bin/sh", "-c"]
+        args:
+        - "python manage.py collectstatic --no-input"
+        envFrom:
+        - secretRef:
+            name: app-secrets
+        - secretRef:
+            name: redis-secret
+        volumeMounts:
+        - name: static-volume
+          mountPath: /home/cpprev/web/staticfiles/
+      containers:
+      - name: web
+        # Use a shell to ensure the REDIS_PASSWORD variable is expanded correctly.
+        command: ["/bin/sh", "-c"]
+        args:
+        - "export REDIS_URL=\"redis://:$(REDIS_PASSWORD)@redis:6379/1\" && exec gunicorn cpprev.wsgi:application --bind 0.0.0.0:8090 --log-level=debug --log-file=-"
+        image: pauloadilson/cpprev:dev-container-redis
+        ports:
+        - containerPort: 8090
+        envFrom:
+        - secretRef:
+            name: app-secrets
+        - secretRef:
+            name: redis-secret
+        resources:
+          requests:
+            cpu: "100m"       # garantido mínimo de CPU
+            memory: "128Mi"   # garantido mínimo de memória
+          limits:
+            cpu: "250m"       # máximo de CPU permitido
+            memory: "256Mi"   # máximo de memória permitido
+      volumes:
+      - name: static-volume
+        persistentVolumeClaim:
+          claimName: static-pvc
