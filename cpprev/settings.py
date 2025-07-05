@@ -122,7 +122,7 @@ import sys
 if 'test' in sys.argv:
     CACHES['default'] = {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}
 # Configuração do Cache com Redis
-else
+else:
     CACHES = {
         "default": {
             "BACKEND": "django_redis.cache.RedisCache",
