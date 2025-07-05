@@ -112,7 +112,7 @@ LOCATION = os.environ.get("REDIS_URL", "redis://localhost:6379/1")
 if 'test' in sys.argv:
     CACHES = {
         'default': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
             'LOCATION': 'unique-snowflake-for-testing',
         }
     }

@@ -54,12 +54,18 @@ class ClientesListView(ListView):
     template_name = "clientes.html"
     context_object_name = "clientes"
     title = "Clientes"
-    ordering = ["nome", "cpf"]  # Default ordering by name and CPF
+    # ordering = ["nome", "cpf"]  # Default ordering by name and CPF
     paginate_by = 10
+
+    def get_ordering(self):
+        """Dynamic ordering based on request parameters"""
+        ordering = self.request.GET.get('ordering', 'nome,cpf')
+        return ordering.split(',') if ordering else ['nome', 'cpf']
 
     def get_queryset(self):
         cache_key = 'lista_de_clientes'
         busca = self.request.GET.get("busca")
+
         if busca:
             print(f"--- BUSCANDO CLIENTES COM CPF CONTENDO: {busca} ---")
             clientes = super().get_queryset().filter(is_deleted=False).filter(
@@ -69,21 +75,23 @@ class ClientesListView(ListView):
 
         # Tenta obter os dados do cache
         clientes = cache.get(cache_key)
-
-        if not clientes:
+        if clientes is None:
             print("--- CACHE MISS --- Buscando do banco e salvando no Redis.")
-            # Se não estiver no cache, busca no banco de dados
-            clientes = super().get_queryset().filter(is_deleted=False).order_by(*self.ordering)
+            clientes = super().get_queryset().filter(
+                is_deleted=False
+                ).order_by(*self.ordering)
             # Armazena o resultado no cache por 15 minutos (900 segundos)
             cache.set(cache_key, clientes, 900)
         else:
             # Se 'clientes' não é None, os dados vieram do cache!
             print("+++ CACHE HIT +++ Servindo a lista de clientes diretamente do Redis!")
+        
         return clientes
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["title"] = self.title
+        context["current_ordering"] = ','.join(self.get_ordering())
         return context
 
 
@@ -209,8 +217,6 @@ class ClienteDeleteView(DeleteView):
 
 class ClienteViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, GlobalDefaultPermission)
-    cache_key = 'lista_de_clientes'
-    queryset = Cliente.objects.filter(is_deleted=False).order_by("nome")
     serializer_class = ClienteSerializer
     lookup_field = 'cpf'
 
@@ -220,18 +226,40 @@ class ClienteViewSet(viewsets.ModelViewSet):
         return super().get_serializer_class()
 
     def get_queryset(self):
-        cache_key = 'lista_de_clientes_api'
-        queryset = cache.get(cache_key)
-        if not queryset:
-            print("--- API CACHE MISS --- Buscando do banco e salvando no Redis.")
-            queryset = super().get_queryset()
-            cache.set(cache_key, queryset, 900)
-        else:
-            # Se 'clientes' não é None, os dados vieram do cache!
-            print("+++ API CACHE HIT +++ Servindo a lista de clientes diretamente do Redis!")
-        if self.action == 'retrieve':
-            queryset = queryset.prefetch_related(
-                'cliente_atendimento',
-                'cliente_titular_requerimento'
-            )
-        return queryset
+        # Only fetch base queryset when needed
+        base_queryset = Cliente.objects.filter(is_deleted=False).order_by("nome")
+
+        # Cache logic ONLY for list views
+        if self.action == 'list':
+            cache_key = 'lista_de_clientes_api'
+            queryset = cache.get(cache_key)
+            if not queryset:
+                print("--- API CACHE MISS --- Buscando do banco e salvando no Redis.")
+                queryset = base_queryset
+                cache.set(cache_key, queryset, 900)
+            else:
+                print("+++ API CACHE HIT +++ Servindo do Redis!")
+            return queryset
+        
+        # # For retrieve/detail views
+        # elif self.action == 'retrieve':
+        #     return base_queryset.prefetch_related(
+        #         'cliente_atendimento',
+        #         'cliente_titular_requerimento'
+        #     )
+
+        # cache_key = 'lista_de_clientes_api'
+        # queryset = cache.get(cache_key)
+        # if not queryset:
+        #     print("--- API CACHE MISS --- Buscando do banco e salvando no Redis.")
+        #     queryset = super().get_queryset()
+        #     cache.set(cache_key, queryset, 900)
+        # else:
+        #     # Se 'clientes' não é None, os dados vieram do cache!
+        #     print("+++ API CACHE HIT +++ Servindo a lista de clientes diretamente do Redis!")
+        # if self.action == 'retrieve':
+        #     queryset = queryset.prefetch_related(
+        #         'cliente_atendimento',
+        #         'cliente_titular_requerimento'
+        #     )
+        # return queryset
