@@ -14,6 +14,7 @@ from datetime import timedelta
 from pathlib import Path
 import secrets
 import os
+import sys
 import django_heroku
 from dotenv import load_dotenv
 
@@ -120,6 +121,18 @@ DATABASES = {
 import sys
 if 'test' in sys.argv:
     CACHES['default'] = {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}
+# Configuração do Cache com Redis
+else
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": LOCATION,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            }
+        }
+    }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -201,18 +214,7 @@ SIMPLE_JWT = {
 
 CORS_ALLOW_ALL_ORIGINS = True
 
-LOCATION = os.environ.get("REDIS_URL", "redis://localhost:6379/1")
 
-# Configuração do Cache com Redis
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": LOCATION,
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        }
-    }
-}
 
 # (Opcional) Configuração para usar Redis como backend de sessão
 # Isso melhora o desempenho e o compartilhamento de sessões entre contêineres
