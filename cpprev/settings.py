@@ -118,7 +118,7 @@ DATABASES = {
     }
 }
 
-import sys
+LOCATION = os.environ.get("REDIS_URL", "redis://localhost:6379/1")
 if 'test' in sys.argv:
     CACHES['default'] = {'BACKEND': 'django.core.cache.backends.dummy.DummyCache'}
 # Configuração do Cache com Redis
