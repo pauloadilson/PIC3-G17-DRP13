@@ -1,5 +1,6 @@
 from datetime import datetime
 from django.http import Http404
+from django.core.cache import cache
 from rest_framework.permissions import IsAuthenticated
 from django.views.generic import (
     TemplateView,
@@ -53,14 +54,31 @@ class ClientesListView(ListView):
     template_name = "clientes.html"
     context_object_name = "clientes"
     title = "Clientes"
-    ordering = ["nome"]
+    ordering = ["nome", "cpf"]  # Default ordering by name and CPF
     paginate_by = 10
 
     def get_queryset(self):
-        clientes = super().get_queryset().filter(is_deleted=False)
+        cache_key = 'lista_de_clientes'
         busca = self.request.GET.get("busca")
         if busca:
-            clientes = clientes.filter(cpf__icontains=busca)
+            print(f"--- BUSCANDO CLIENTES COM CPF CONTENDO: {busca} ---")
+            clientes = super().get_queryset().filter(is_deleted=False).filter(
+                cpf__icontains=busca
+            ).order_by(*self.ordering)
+            return clientes
+
+        # Tenta obter os dados do cache
+        clientes = cache.get(cache_key)
+
+        if not clientes:
+            print("--- CACHE MISS --- Buscando do banco e salvando no Redis.")
+            # Se não estiver no cache, busca no banco de dados
+            clientes = super().get_queryset().filter(is_deleted=False).order_by(*self.ordering)
+            # Armazena o resultado no cache por 15 minutos (900 segundos)
+            cache.set(cache_key, clientes, 900)
+        else:
+            # Se 'clientes' não é None, os dados vieram do cache!
+            print("+++ CACHE HIT +++ Servindo a lista de clientes diretamente do Redis!")
         return clientes
 
     def get_context_data(self, **kwargs):
@@ -191,7 +209,8 @@ class ClienteDeleteView(DeleteView):
 
 class ClienteViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, GlobalDefaultPermission)
-    queryset = Cliente.objects.filter(is_deleted=False)
+    cache_key = 'lista_de_clientes'
+    queryset = Cliente.objects.filter(is_deleted=False).order_by("nome")
     serializer_class = ClienteSerializer
     lookup_field = 'cpf'
 
@@ -201,7 +220,15 @@ class ClienteViewSet(viewsets.ModelViewSet):
         return super().get_serializer_class()
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        cache_key = 'lista_de_clientes_api'
+        queryset = cache.get(cache_key)
+        if not queryset:
+            print("--- API CACHE MISS --- Buscando do banco e salvando no Redis.")
+            queryset = super().get_queryset()
+            cache.set(cache_key, queryset, 900)
+        else:
+            # Se 'clientes' não é None, os dados vieram do cache!
+            print("+++ API CACHE HIT +++ Servindo a lista de clientes diretamente do Redis!")
         if self.action == 'retrieve':
             queryset = queryset.prefetch_related(
                 'cliente_atendimento',
