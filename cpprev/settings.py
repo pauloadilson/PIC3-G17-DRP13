@@ -197,3 +197,21 @@ SIMPLE_JWT = {
 }
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+LOCATION = os.environ.get("REDIS_URL", "redis://localhost:6379/1")
+
+# Configuração do Cache com Redis
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": LOCATION,
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
+# (Opcional) Configuração para usar Redis como backend de sessão
+# Isso melhora o desempenho e o compartilhamento de sessões entre contêineres
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"
