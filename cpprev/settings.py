@@ -126,6 +126,7 @@ else:
         }
     }
 
+LOCATION = os.environ.get("REDIS_URL", "redis://localhost:6379/1")
 # Caching and Session configuration
 # Use in-memory cache and session backend for tests, and Redis for development/production.
 if 'test' in sys.argv:
@@ -140,7 +141,7 @@ else:
     CACHES = {
         "default": {
             "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": os.environ.get('REDIS_URL', 'redis://localhost:6379/1'),
+            "LOCATION": LOCATION,
             "OPTIONS": {
                 "CLIENT_CLASS": "django_redis.client.DefaultClient",
             }
@@ -228,19 +229,6 @@ SIMPLE_JWT = {
 }
 
 CORS_ALLOW_ALL_ORIGINS = True
-
-LOCATION = os.environ.get("REDIS_URL", "redis://localhost:6379/1")
-
-# Configuração do Cache com Redis
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": LOCATION,
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-        }
-    }
-}
 
 # (Opcional) Configuração para usar Redis como backend de sessão
 # Isso melhora o desempenho e o compartilhamento de sessões entre contêineres
