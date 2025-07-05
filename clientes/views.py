@@ -65,12 +65,13 @@ class ClientesListView(ListView):
     def get_queryset(self):
         cache_key = 'lista_de_clientes'
         busca = self.request.GET.get("busca")
+        ordering = self.get_ordering()
 
         if busca:
             print(f"--- BUSCANDO CLIENTES COM CPF CONTENDO: {busca} ---")
             clientes = super().get_queryset().filter(is_deleted=False).filter(
                 cpf__icontains=busca
-            ).order_by(*self.ordering)
+            ).order_by(*ordering)
             return clientes
 
         # Tenta obter os dados do cache
@@ -79,7 +80,7 @@ class ClientesListView(ListView):
             print("--- CACHE MISS --- Buscando do banco e salvando no Redis.")
             clientes = super().get_queryset().filter(
                 is_deleted=False
-                ).order_by(*self.ordering)
+                ).order_by(*ordering)
             # Armazena o resultado no cache por 15 minutos (900 segundos)
             cache.set(cache_key, clientes, 900)
         else:

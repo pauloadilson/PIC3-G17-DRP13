@@ -212,5 +212,4 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 # (Opcional) Configuração para usar Redis como backend de sessão
 # Isso melhora o desempenho e o compartilhamento de sessões entre contêineres
-SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "default"
