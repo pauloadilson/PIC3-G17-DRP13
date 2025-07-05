@@ -106,25 +106,6 @@ DATABASES = {
     }
 }
 
-# Caching
-# Use in-memory caching for tests, and Redis for development/production.
-if 'CI' in os.environ:
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-            'LOCATION': 'unique-snowflake',
-        }
-    }
-else:
-    CACHES = {
-        "default": {
-            "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": os.environ.get('REDIS_URL', 'redis://localhost:6379/1'),
-            "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            }
-        }
-    }
 
 LOCATION = os.environ.get("REDIS_URL", "redis://localhost:6379/1")
 # Caching and Session configuration
@@ -132,7 +113,7 @@ LOCATION = os.environ.get("REDIS_URL", "redis://localhost:6379/1")
 if 'test' in sys.argv:
     CACHES = {
         'default': {
-            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
             'LOCATION': 'unique-snowflake-for-testing',
         }
     }
