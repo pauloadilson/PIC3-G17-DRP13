@@ -123,10 +123,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
-.env.dev
-.env.prod
-.env.test
+.env*
 .venv
 env/
 venv/
@@ -173,3 +170,4 @@ msedgedriver.exe
 .vscode/
 staticfiles/
 .scripts
+.flake8

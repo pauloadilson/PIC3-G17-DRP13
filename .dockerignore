@@ -10,7 +10,13 @@ __pycache__/
 docker-compose.yml
 docker-compose*.yml
 README.md
-.github/
-.vscode/
 .scripts
 .flake8
+
+staticfiles/
+.vscode/
+
+# Functional test
+msedgedriver_downloader.exe
+msedgedriver.exe
+.github/

@@ -65,4 +65,4 @@ EXPOSE 8090
 # CMD ["python", "manage.py", "runserver", "0.0.0.0:8090"]
 
 # Comando para iniciar a aplicação (para produção)
-CMD ["gunicorn", "--bind", "0.0.0.0:8090", "cpprev.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8090","--access-logfile", "-", "cpprev.wsgi:application"]
