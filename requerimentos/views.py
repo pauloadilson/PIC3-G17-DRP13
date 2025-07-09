@@ -1,4 +1,5 @@
 from django.http import Http404
+from django.core.cache import cache
 from django.views.generic import (
     CreateView,
     DetailView,
@@ -44,7 +45,6 @@ from requerimentos.serializers import (
     ExigenciaRequerimentoRecursoSerializer
 )
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.generics import ListCreateAPIView
 from rest_framework import viewsets
 
 
@@ -674,18 +674,6 @@ class MudancaEstadoRequerimentoInicialDeleteView(DeleteView):
         )
 
 
-class RequerimentoInicialCreateListAPIView(ListCreateAPIView):
-    permission_classes = (IsAuthenticated,)
-    queryset = RequerimentoInicial.objects.all()
-    serializer_class = RequerimentoInicialSerializer
-
-    def get_queryset(self):
-        return RequerimentoInicial.objects.filter(is_deleted=False)
-
-    def perform_create(self, serializer):
-        serializer.save()
-
-
 @method_decorator(login_required(login_url='login'), name='dispatch')
 class RequerimentoRecursoCienciaView(UpdateView):
     model = RequerimentoRecurso
@@ -784,19 +772,35 @@ class MudancaEstadoRequerimentoRecursoDeleteView(DeleteView):
 
 class RequerimentoInicialViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, GlobalDefaultPermission)
-    queryset = RequerimentoInicial.objects.filter(is_deleted=False)
     serializer_class = RequerimentoInicialSerializer
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
             return RequerimentoInicialRetrieveSerializer
         return super().get_serializer_class()
+    
+    def get_ordering(self):
+        """Dynamic ordering based on request parameters"""
+        ordering = self.request.GET.get('ordering', '-data,protocolo')
+        return ordering.split(',') if ordering else ['-data', 'protocolo']
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        ordering = self.get_ordering()
+        base_queryset = RequerimentoInicial.objects.filter(is_deleted=False)
         cliente_cpf = self.kwargs.get("cliente_cpf")
-        if cliente_cpf:
-            queryset = queryset.filter(requerente_titular__cpf=cliente_cpf)
+
+        # Cache logic ONLY for list view without filters
+        if self.action == 'list' and not cliente_cpf:
+            cache_key = f"lista_de_requerimentos_iniciais_api_{'_'.join(ordering)}"
+            queryset = cache.get(cache_key)
+            if queryset is None:
+                print(f"--- API CACHE MISS ({cache_key}) --- Buscando do banco e salvando no Redis.")
+                queryset = base_queryset.order_by(*ordering)
+                TIMEOUT = 900
+                cache.set(cache_key, queryset, TIMEOUT)
+            else:
+                print(f"--- API CACHE HIT ({cache_key}) --- Recuperando do Redis.")
+
         if self.action == 'retrieve':
             queryset = queryset.prefetch_related(
                 'requerimento_inicial_exigencia',
@@ -807,65 +811,147 @@ class RequerimentoInicialViewSet(viewsets.ModelViewSet):
 
 class RequerimentoRecursoViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, GlobalDefaultPermission)
-    queryset = RequerimentoRecurso.objects.filter(is_deleted=False)
     serializer_class = RequerimentoRecursoSerializer
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
             return RequerimentoRecursoRetrieveSerializer
         return super().get_serializer_class()
+ 
+    def get_ordering(self):
+        """Dynamic ordering based on request parameters"""
+        ordering = self.request.GET.get('ordering', '-data,protocolo')
+        return ordering.split(',') if ordering else ['-data', 'protocolo']
 
     def get_queryset(self):
-        qs = super().get_queryset()
+        ordering = self.get_ordering()
+        base_queryset = RequerimentoRecurso.objects.filter(is_deleted=False)
         cliente_cpf = self.kwargs.get("cliente_cpf")
+
+        # Cache logic ONLY for list view without filters
+        if self.action == 'list' and not cliente_cpf:
+            cache_key = f"lista_de_requerimentos_recursos_api_{'_'.join(ordering)}"
+            queryset = cache.get(cache_key)
+            if queryset is None:
+                print(f"--- API CACHE MISS ({cache_key}) --- Buscando do banco e salvando no Redis.")
+                queryset = base_queryset.order_by(*ordering)
+                TIMEOUT = 900
+                cache.set(cache_key, queryset, TIMEOUT)
+            else:
+                print(f"--- API CACHE HIT ({cache_key}) --- Recuperando do Redis.")
+            return queryset
+
+        # Default behavior for other actions or filtered list
+        queryset = base_queryset.order_by(*ordering)
         if cliente_cpf:
-            qs = qs.filter(requerente_titular__cpf=cliente_cpf)
+            queryset = queryset.filter(requerente_titular__cpf=cliente_cpf)
         if self.action == 'retrieve':
-            qs = qs.prefetch_related(
+            queryset = queryset.prefetch_related(
                 'requerimento_recurso_exigencia',
                 'historico_estado_requerimento'
             )
-
-        return qs
+        return queryset
 
 
 class ExigenciaRequerimentoInicialViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, GlobalDefaultPermission)
-    queryset = ExigenciaRequerimentoInicial.objects.filter(is_deleted=False)
     serializer_class = ExigenciaRequerimentoInicialSerializer
 
+    def get_ordering(self):
+        """Dynamic ordering based on request parameters"""
+        ordering = self.request.GET.get('ordering', '-data')
+        return ordering.split(',') if ordering else ['-data']
+
     def get_queryset(self):
-        qs = super().get_queryset()
+        ordering = self.get_ordering()
+        base_queryset = ExigenciaRequerimentoInicial.objects.filter(is_deleted=False)
         requerimento_id = self.kwargs.get("req_inicial_pk")
+
+        # Cache logic ONLY for the global list view (when not nested)
+        if self.action == 'list' and not requerimento_id:
+            cache_key = f"lista_de_exigencias_iniciais_api_{'_'.join(ordering)}"
+            queryset = cache.get(cache_key)
+            if queryset is None:
+                print(f"--- API CACHE MISS ({cache_key}) --- Buscando do banco e salvando no Redis.")
+                queryset = base_queryset.order_by(*ordering)
+                TIMEOUT = 900
+                cache.set(cache_key, queryset, TIMEOUT)
+            else:
+                print(f"--- API CACHE HIT ({cache_key}) --- Recuperando do Redis.")
+            return queryset
+
+        # Default behavior for other actions or filtered list
+        queryset = base_queryset.order_by(*ordering)
         if requerimento_id:
-            qs = qs.filter(requerimento__id=requerimento_id)
-        return qs
+            queryset = queryset.filter(requerimento__id=requerimento_id)
+        return queryset
 
 
 class ExigenciaRequerimentoRecursoViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, GlobalDefaultPermission)
-    queryset = ExigenciaRequerimentoRecurso.objects.filter(is_deleted=False)
     serializer_class = ExigenciaRequerimentoRecursoSerializer
 
-    def get_queryset(self):
-        qs = super().get_queryset()
-        requerimento_id = self.kwargs.get("req_inicial_pk")
-        if requerimento_id:
-            qs = qs.filter(requerimento__id=requerimento_id)
-        return qs
+    def get_ordering(self):
+        """Dynamic ordering based on request parameters"""
+        ordering = self.request.GET.get('ordering', '-data')
+        return ordering.split(',') if ordering else ['-data']
 
+    def get_queryset(self):
+        ordering = self.get_ordering()
+        base_queryset = ExigenciaRequerimentoRecurso.objects.filter(is_deleted=False)
+        requerimento_id = self.kwargs.get("req_recurso_pk")
+
+        # Cache logic ONLY for the global list view (when not nested)
+        if self.action == 'list' and not requerimento_id:
+            cache_key = f"lista_de_exigencias_recursos_api_{'_'.join(ordering)}"
+            queryset = cache.get(cache_key)
+            if queryset is None:
+                print(f"--- API CACHE MISS ({cache_key}) --- Buscando do banco e salvando no Redis.")
+                queryset = base_queryset.order_by(*ordering)
+                TIMEOUT = 900
+                cache.set(cache_key, queryset, TIMEOUT)
+            else:
+                print(f"--- API CACHE HIT ({cache_key}) --- Recuperando do Redis.")
+            return queryset
+
+        # Default behavior for other actions or filtered list
+        queryset = base_queryset.order_by(*ordering)
+        if requerimento_id:
+            queryset = queryset.filter(requerimento__id=requerimento_id)
+        return queryset
 
 class HistoricoMudancaEstadoRequerimentoInicialViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, GlobalDefaultPermission)
-    queryset = HistoricoMudancaEstadoRequerimentoInicial.objects.filter(is_deleted=False)
     serializer_class = HistoricoMudancaEstadoRequerimentoInicialSerializer
 
+    def get_ordering(self):
+        """Dynamic ordering based on request parameters"""
+        ordering = self.request.GET.get('ordering', '-data_mudanca')
+        return ordering.split(',') if ordering else ['-data_mudanca']
+
     def get_queryset(self):
-        qs = super().get_queryset()
+        ordering = self.get_ordering()
+        base_queryset = HistoricoMudancaEstadoRequerimentoInicial.objects.filter(is_deleted=False)
         requerimento_id = self.kwargs.get("req_inicial_pk")
+
+        # Cache logic ONLY for the global list view (when not nested)
+        if self.action == 'list' and not requerimento_id:
+            cache_key = f"lista_de_mudancas_de_estado_iniciais_api_{'_'.join(ordering)}"
+            queryset = cache.get(cache_key)
+            if queryset is None:
+                print(f"--- API CACHE MISS ({cache_key}) --- Buscando do banco e salvando no Redis.")
+                queryset = base_queryset.order_by(*ordering)
+                TIMEOUT = 900
+                cache.set(cache_key, queryset, TIMEOUT)
+            else:
+                print(f"--- API CACHE HIT ({cache_key}) --- Recuperando do Redis.")
+            return queryset
+
+        # Default behavior for other actions or filtered list
+        queryset = base_queryset.order_by(*ordering)
         if requerimento_id:
-            qs = qs.filter(requerimento__id=requerimento_id)
-        return qs
+            queryset = queryset.filter(requerimento__id=requerimento_id)
+        return queryset
 
 
 class HistoricoMudancaEstadoRequerimentoRecursoViewSet(viewsets.ModelViewSet):
@@ -873,9 +959,31 @@ class HistoricoMudancaEstadoRequerimentoRecursoViewSet(viewsets.ModelViewSet):
     queryset = HistoricoMudancaEstadoRequerimentoRecurso.objects.filter(is_deleted=False)
     serializer_class = HistoricoMudancaEstadoRequerimentoRecursoSerializer
 
+    def get_ordering(self):
+        """Dynamic ordering based on request parameters"""
+        ordering = self.request.GET.get('ordering', '-data_mudanca')
+        return ordering.split(',') if ordering else ['-data_mudanca']
+
     def get_queryset(self):
-        qs = super().get_queryset()
+        ordering = self.get_ordering()
+        base_queryset = HistoricoMudancaEstadoRequerimentoRecurso.objects.filter(is_deleted=False)
         requerimento_id = self.kwargs.get("req_recurso_pk")
+
+        # Cache logic ONLY for the global list view (when not nested)
+        if self.action == 'list' and not requerimento_id:
+            cache_key = f"lista_de_mudancas_de_estado_recursos_api_{'_'.join(ordering)}"
+            queryset = cache.get(cache_key)
+            if queryset is None:
+                print(f"--- API CACHE MISS ({cache_key}) --- Buscando do banco e salvando no Redis.")
+                queryset = base_queryset.order_by(*ordering)
+                TIMEOUT = 900
+                cache.set(cache_key, queryset, TIMEOUT)
+            else:
+                print(f"--- API CACHE HIT ({cache_key}) --- Recuperando do Redis.")
+            return queryset
+
+        # Default behavior for other actions or filtered list
+        queryset = base_queryset.order_by(*ordering)
         if requerimento_id:
-            qs = qs.filter(requerimento__id=requerimento_id)
-        return qs
+            queryset = queryset.filter(requerimento__id=requerimento_id)
+        return queryset

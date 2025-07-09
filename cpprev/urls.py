@@ -41,8 +41,8 @@ router.register(r'requerimentos-iniciais', RequerimentoInicialViewSet, basename=
 router.register(r'requerimentos-recursos', RequerimentoRecursoViewSet, basename='req_recursos')
 router.register(r'exigencias-requerimentos-iniciais', ExigenciaRequerimentoInicialViewSet, basename='exigencias_req_iniciais')
 router.register(r'historico-mudancas-requerimentos-iniciais', HistoricoMudancaEstadoRequerimentoInicialViewSet, basename='mudancas_req_iniciais')
-router.register(r'exigencias-requerimentos-recursos', ExigenciaRequerimentoInicialViewSet, basename='exigencias_req_recursos')
-router.register(r'historico-mudancas-requerimentos-recursos', HistoricoMudancaEstadoRequerimentoInicialViewSet, basename='mudancas_req_recursos')
+router.register(r'exigencias-requerimentos-recursos', ExigenciaRequerimentoRecursoViewSet, basename='exigencias_req_recursos')
+router.register(r'historico-mudancas-requerimentos-recursos', HistoricoMudancaEstadoRequerimentoRecursoViewSet, basename='mudancas_req_recursos')
 
 # Router aninhado para requerimentos
 clientes_router = routers.NestedSimpleRouter(router, r'clientes', lookup='cliente')

@@ -22,6 +22,7 @@ from microsoft_authentication.auth_helper import get_token
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from agenda.serializers import EventoSerializer
+from django.core.cache import cache
 
 
 @method_decorator(login_required(login_url='login'), name='dispatch')
@@ -30,9 +31,21 @@ class AgendaView(ListView):
     template_name = 'agenda.html'
     context_object_name = 'agenda'
     title = "Agenda"
+    paginate_by = 10
 
     def get_queryset(self):
-        return Evento.objects.all()
+        cache_key = f"agenda_de_eventos_{'_'.join(ordering)}"
+
+        eventos = cache.get(cache_key)
+        if eventos is None:
+            print("--- CACHE MISS --- Buscando do banco e salvando no Redis.")
+            eventos = Evento.objects.all()
+            TIMEOUT = 900
+            cache.set(cache_key, eventos, TIMEOUT)
+        else:
+            print("--- CACHE HIT --- Servindo lista de eventos diretamente do Redis!")
+
+        return eventos
 
     def get_context_data(self, **kwargs):
         context = super(AgendaView, self).get_context_data(**kwargs)
@@ -139,5 +152,34 @@ class PrazoView(TemplateView):
 
 class EventoViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, GlobalDefaultPermission)
-    queryset = Evento.objects.all()
     serializer_class = EventoSerializer
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return EventoSerializer
+        return super().get_serializer_class()
+
+    def get_ordering(self):
+        """Dynamic ordering based on request parameters"""
+        ordering = self.request.GET.get('ordering', '-data_inicio')
+        return ordering.split(',') if ordering else ['-data_inicio']
+
+    def get_queryset(self):
+        """Return a list of eventos, filtering by is_deleted=False."""
+        ordering = self.get_ordering()
+        base_queryset = Evento.objects.order_by(*ordering)
+        
+        # Cache logic ONLY for list view
+        if self.action == 'list':
+            cache_key = f"lista_de_eventos_api_{'_'.join(ordering)}"
+            eventos = cache.get(cache_key)
+
+            if eventos is None:
+                print(f"--- API CACHE MISS ({cache_key}) --- Buscando do banco e salvando no Redis.")
+                eventos = base_queryset
+                TIMEOUT = 900
+                cache.set(cache_key, eventos, TIMEOUT)
+            else:
+                print(f"--- API CACHE HIT ({cache_key}) --- Recuperando do Redis.")
+        
+        return eventos

@@ -88,35 +88,50 @@ WSGI_APPLICATION = "cpprev.wsgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
+IS_TESTING = 'test' in sys.argv or os.environ.get('CI') == 'true'
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("DATABASE_NAME"),
-        "USER": os.environ.get("DATABASE_USER"),
-        "PASSWORD": os.environ.get("DATABASE_PASSWORD"),
-        "HOST": os.environ.get("DATABASE_HOST"),
-        "PORT": os.environ.get("DATABASE_PORT"),
-        "TEST": {
-            "NAME": os.environ.get("TEST_DB_NAME"),
-        },
-        "OPTIONS": {
-            "options": "-c client_encoding=UTF8",
-        },
+# Usa SQLite para testes e PostgreSQL para desenvolvimento/produção
+if IS_TESTING:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": ":memory:",  # Banco em memória para testes mais rápidos
+        }
     }
-}
+    PASSWORD_HASHERS = [
+        "django.contrib.auth.hashers.MD5PasswordHasher",
+    ]
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": os.environ.get("DATABASE_NAME"),
+            "USER": os.environ.get("DATABASE_USER"),
+            "PASSWORD": os.environ.get("DATABASE_PASSWORD"),
+            "HOST": os.environ.get("DATABASE_HOST"),
+            "PORT": os.environ.get("DATABASE_PORT"),
+            "TEST": {
+                "NAME": os.environ.get("TEST_DB_NAME"),
+            },
+            "OPTIONS": {
+                "options": "-c client_encoding=UTF8",
+            },
+        }
+    }
 
 LOCATION = os.environ.get("REDIS_URL", "redis://localhost:6379/1")
-# Caching and Session configuration
-# Use in-memory cache and session backend for tests, and Redis for development/production.
-if 'test' in sys.argv:
+# Configuração de Cache e Sessão
+# Usa cache e sessão em memória para testes (quando 'test' no comando ou CI=true)
+# Usa Redis para desenvolvimento/produção
+if IS_TESTING:
     CACHES = {
         'default': {
-            'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
             'LOCATION': 'unique-snowflake-for-testing',
         }
     }
     SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+    SESSION_CACHE_ALIAS = 'default'
 else:
     CACHES = {
         "default": {
@@ -129,6 +144,7 @@ else:
     }
     # Ensure sessions use the cache backend in development/production as well
     SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+    SESSION_CACHE_ALIAS = 'default'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -209,7 +225,3 @@ SIMPLE_JWT = {
 }
 
 CORS_ALLOW_ALL_ORIGINS = True
-
-# (Opcional) Configuração para usar Redis como backend de sessão
-# Isso melhora o desempenho e o compartilhamento de sessões entre contêineres
-SESSION_CACHE_ALIAS = "default"

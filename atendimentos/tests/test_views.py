@@ -87,7 +87,8 @@ class TestAtendimentoViews(TransactionTestCase):
         response = self.client.post(url, data)
         # A criação bem-sucedida deve redirecionar para a lista de atendimentos
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("atendimentos"))
+        # Verifica se o redirecionamento está correto
+        self.assertEqual(response.url, reverse("atendimento", kwargs={"cpf": self.cliente.cpf, "pk": Atendimento.objects.last().id}))
         self.assertTrue(Atendimento.objects.filter(descricao="Teste de criação via POST").exists())
 
     def test_atendimento_update_view_POST(self):
@@ -102,7 +103,7 @@ class TestAtendimentoViews(TransactionTestCase):
         }
         response = self.client.post(url, data)
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("atendimentos"))
+        self.assertEqual(response.url, reverse("atendimento", kwargs={"cpf": self.cliente.cpf, "pk": Atendimento.objects.last().id}))
         self.atendimento.refresh_from_db()
         self.assertEqual(self.atendimento.descricao, new_description)
         self.assertEqual(self.atendimento.observacao, new_observacao)

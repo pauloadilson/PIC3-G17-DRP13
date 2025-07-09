@@ -1,34 +1,36 @@
 from datetime import datetime
-from django.http import Http404
-from django.core.cache import cache
-from rest_framework.permissions import IsAuthenticated
-from django.views.generic import (
-    TemplateView,
-    ListView,
-    CreateView,
-    DetailView,
-    UpdateView,
-    DeleteView,
-)
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
-from agenda.models import Evento
-from clientes.models import Cliente
-from cpprev.permissions import GlobalDefaultPermission
-from requerimentos.models import (
-    RequerimentoInicial,
-    RequerimentoRecurso,
-)
-from clientes.forms import ClienteModelForm
-from django.urls import reverse_lazy
-from django.shortcuts import get_object_or_404
 from itertools import chain
-from django.utils import timezone
 
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.core.cache import cache
+from django.db.models import Prefetch
+from django.urls import reverse_lazy
+from django.utils import timezone
+from django.views.generic import (
+    CreateView,
+    DeleteView,
+    DetailView,
+    ListView,
+    TemplateView,
+    UpdateView,
+)
 from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
+
+from atendimentos.models import Atendimento
+from agenda.models import Evento
+from clientes.forms import ClienteModelForm
+from clientes.mixins import SoftDeleteGetMixin
+from clientes.models import Cliente
 from clientes.serializers import (
     ClienteRetrieveSerializer,
     ClienteSerializer
+)
+from cpprev.permissions import GlobalDefaultPermission
+from requerimentos.models import (
+    Requerimento,
+    RequerimentoInicial,
+    RequerimentoRecurso,
 )
 
 
@@ -36,7 +38,7 @@ class IndexView(TemplateView):
     template_name = "index.html"
     title = "Página inicial"
 
-    def get_context_data(self, **kwargs) -> dict[str, any]:
+    def get_context_data(self, **kwargs):
         context = super(IndexView, self).get_context_data(**kwargs)
         hoje = timezone.localdate()
         hoje_aware = timezone.make_aware(datetime.combine(hoje, datetime.min.time()))
@@ -48,65 +50,60 @@ class IndexView(TemplateView):
         return context
 
 
-@method_decorator(login_required(login_url="login"), name="dispatch")
-class ClientesListView(ListView):
+class ClientesListView(LoginRequiredMixin, ListView):
     model = Cliente
     template_name = "clientes.html"
     context_object_name = "clientes"
     title = "Clientes"
-    # ordering = ["nome", "cpf"]  # Default ordering by name and CPF
     paginate_by = 10
+    login_url = "login"
 
     def get_ordering(self):
-        """Dynamic ordering based on request parameters"""
-        ordering = self.request.GET.get('ordering', 'nome,cpf')
-        return ordering.split(',') if ordering else ['nome', 'cpf']
+        """Retorna a ordenação da requisição ou o padrão."""
+        return self.request.GET.get('ordering', 'nome,cpf')
 
     def get_queryset(self):
-        cache_key = 'lista_de_clientes'
         busca = self.request.GET.get("busca")
-        ordering = self.get_ordering()
+        ordering_params = self.get_ordering()
+        ordering = ordering_params.split(',')
+
+        queryset = self.model.objects.filter(is_deleted=False)
 
         if busca:
             print(f"--- BUSCANDO CLIENTES COM CPF CONTENDO: {busca} ---")
-            clientes = super().get_queryset().filter(is_deleted=False).filter(
-                cpf__icontains=busca
-            ).order_by(*ordering)
-            return clientes
+            return queryset.filter(cpf__icontains=busca).order_by(*ordering)
 
-        # Tenta obter os dados do cache
-        clientes = cache.get(cache_key)
-        if clientes is None:
-            print("--- CACHE MISS --- Buscando do banco e salvando no Redis.")
-            clientes = super().get_queryset().filter(
-                is_deleted=False
-                ).order_by(*ordering)
-            # Armazena o resultado no cache por 15 minutos (900 segundos)
-            cache.set(cache_key, clientes, 900)
+        # Usa um número de versão para invalidar o cache de forma mais robusta
+        version = cache.get_or_set('clientes_list_version_html', 1)
+        cache_key = f"lista_de_clientes_{ordering_params}_v{version}"
+
+        cached_queryset = cache.get(cache_key)
+        if cached_queryset is None:
+            print(f"--- CACHE MISS ({cache_key}) --- Buscando do banco e salvando no Redis.")
+            cached_queryset = queryset.order_by(*ordering)
+            cache.set(cache_key, cached_queryset, 900)  # 15 minutos
         else:
-            # Se 'clientes' não é None, os dados vieram do cache!
-            print("+++ CACHE HIT +++ Servindo a lista de clientes diretamente do Redis!")
-        
-        return clientes
+            print(f"+++ CACHE HIT ({cache_key}) +++ Servindo a lista do Redis!")
+
+        return cached_queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["title"] = self.title
-        context["current_ordering"] = ','.join(self.get_ordering())
+        context["current_ordering"] = self.get_ordering()
         return context
 
 
-@method_decorator(login_required(login_url="login"), name="dispatch")
-class ClienteCreateView(CreateView):
+class ClienteCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Cliente
     template_name = "form.html"
     form_class = ClienteModelForm
     title = "Novo Cliente"
-    permission_required = "clientes.create_cliente"
+    permission_required = "clientes.add_cliente"  # Permissão padrão do Django
+    login_url = "login"
 
     def get_context_data(self, **kwargs):
-        context = super(ClienteCreateView, self).get_context_data(**kwargs)
-        # adicionar o título da página e o título do formulário ao contexto
+        context = super().get_context_data(**kwargs)
         context["title"] = self.title
         return context
 
@@ -114,106 +111,98 @@ class ClienteCreateView(CreateView):
         return reverse_lazy("cliente", kwargs={"cpf": self.object.cpf})
 
 
-@method_decorator(login_required(login_url="login"), name="dispatch")
-class ClienteDetailView(DetailView):
+class ClienteDetailView(LoginRequiredMixin, SoftDeleteGetMixin, DetailView):
     model = Cliente
     template_name = "cliente.html"
     context_object_name = "cliente"
     slug_field = "cpf"
     slug_url_kwarg = "cpf"
+    login_url = "login"
 
-    def get_object(self, queryset=None):
-        cpf = self.kwargs.get('cpf')
-        obj = get_object_or_404(Cliente, cpf=cpf)
-        if obj.is_deleted:
-            raise Http404("Cliente não encontrado")
-        return obj
+    def get_queryset(self):
+        # Otimiza as consultas, buscando tudo de uma vez com prefetch_related
+        return (
+            super()
+            .get_queryset()
+            .prefetch_related(
+                Prefetch(
+                    "cliente_titular_requerimento",
+                    queryset=Requerimento.objects.filter(is_deleted=False),
+                    to_attr="requerimentos_ativos",
+                ),
+                Prefetch(
+                    "cliente_atendimento",
+                    queryset=Atendimento.objects.filter(is_deleted=False),
+                    to_attr="atendimentos_ativos",
+                ),
+            )
+        )
 
     def get_context_data(self, **kwargs):
-        context = super(ClienteDetailView, self).get_context_data(**kwargs)
-        cliente_id = self.object.cpf
-        title = f"Cliente {cliente_id}"
-        requerimentos_iniciais = RequerimentoInicial.objects.filter(
-            is_deleted=False
-        ).filter(requerente_titular__cpf__icontains=cliente_id)
-        recursos = RequerimentoRecurso.objects.filter(is_deleted=False).filter(
-            requerente_titular__cpf__icontains=cliente_id
-        )
-        atendimentos_cliente = self.object.cliente_atendimento.filter(
-            is_deleted=False
-        )
-        qtde_instancias_filhas = self.object.total_requerimentos + self.object.total_atendimentos
+        context = super().get_context_data(**kwargs)
+        cliente = self.object
 
-        context["title"] = title
-        context["requerimentos"] = requerimentos_iniciais
-        context["recursos"] = recursos
-        context["atendimentos"] = atendimentos_cliente
-        context["qtde_instancias_filhas"] = qtde_instancias_filhas
+        # Os dados já foram pré-buscados, então não há novas queries aqui
+        requerimentos = cliente.requerimentos_ativos
+        atendimentos = cliente.atendimentos_ativos
+
+        context["title"] = f"Cliente {cliente.nome}"
+        context["requerimentos"] = [req for req in requerimentos if isinstance(req, RequerimentoInicial)]
+        context["recursos"] = [req for req in requerimentos if isinstance(req, RequerimentoRecurso)]
+        context["atendimentos"] = atendimentos
+        context["qtde_instancias_filhas"] = len(requerimentos) + len(atendimentos)
         return context
 
 
-@method_decorator(login_required(login_url="login"), name="dispatch")
-class ClienteUpdateView(UpdateView):
+class ClienteUpdateView(LoginRequiredMixin, SoftDeleteGetMixin, UpdateView):
     model = Cliente
     template_name = "form.html"
     form_class = ClienteModelForm
     title = "Editando Cliente"
-    form_title_identificador = None
     slug_field = "cpf"
     slug_url_kwarg = "cpf"
+    login_url = "login"
 
     def get_success_url(self):
         return reverse_lazy("cliente", kwargs={"cpf": self.object.cpf})
 
     def get_context_data(self, **kwargs):
-        context = super(ClienteUpdateView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context["title"] = self.title
         context["form_title_identificador"] = f"CPF nº {self.object.cpf}"
         return context
 
-    def get_object(self, queryset=None):
-        obj = super().get_object(queryset)
-        if obj.is_deleted:
-            raise Http404("Cliente não encontrado")
-        return obj
 
-
-@method_decorator(login_required(login_url="login"), name="dispatch")
-class ClienteDeleteView(DeleteView):
+class ClienteDeleteView(LoginRequiredMixin, SoftDeleteGetMixin, DeleteView):
     model = Cliente
     template_name = "delete.html"
-    success_url = "/clientes/"
+    success_url = reverse_lazy("clientes")
     title = "Excluindo Cliente"
     tipo_objeto = "o cliente"
     slug_field = "cpf"
     slug_url_kwarg = "cpf"
+    login_url = "login"
 
     def get_context_data(self, **kwargs):
-        context = super(ClienteDeleteView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
+        cliente = self.object
 
-        cliente_id = self.object.cpf
-        requerimentos_cliente = RequerimentoInicial.objects.filter(
-            is_deleted=False
-        ).filter(requerente_titular__cpf__icontains=cliente_id)
-        recursos_cliente = RequerimentoRecurso.objects.filter(is_deleted=False).filter(
-            requerente_titular__cpf__icontains=cliente_id
+        # Reutiliza a consulta otimizada para mostrar dependências
+        requerimentos_cliente = Requerimento.objects.filter(
+            is_deleted=False, requerente_titular=cliente
         )
-        result_list = list(chain(requerimentos_cliente, recursos_cliente))
-        qtde_instancias_filhas = self.object.total_requerimentos
+        atendimentos_cliente = Atendimento.objects.filter(
+            is_deleted=False, cliente=cliente
+        )
+
+        result_list = list(chain(requerimentos_cliente, atendimentos_cliente))
 
         context["title"] = self.title
         context["form_title_identificador"] = f"de CPF nº {self.object.cpf}"
         context["tipo_objeto"] = self.tipo_objeto
-        context["qtde_instancias_filhas"] = qtde_instancias_filhas
+        context["qtde_instancias_filhas"] = len(result_list)
         context["result_list"] = result_list
-        print(result_list)
         return context
-
-    def get_object(self, queryset=None):
-        obj = super().get_object(queryset)
-        if obj.is_deleted:
-            raise Http404("Cliente não encontrado")
-        return obj
 
 
 class ClienteViewSet(viewsets.ModelViewSet):
@@ -226,41 +215,25 @@ class ClienteViewSet(viewsets.ModelViewSet):
             return ClienteRetrieveSerializer
         return super().get_serializer_class()
 
+    def get_ordering(self):
+        """Retorna a ordenação da requisição ou o padrão."""
+        return self.request.query_params.get("ordering", "nome,cpf")
+
     def get_queryset(self):
-        # Only fetch base queryset when needed
-        base_queryset = Cliente.objects.filter(is_deleted=False).order_by("nome")
+        ordering_params = self.get_ordering()
 
-        # Cache logic ONLY for list views
+        # Para a ação 'list', tentamos usar o cache com chave dinâmica
         if self.action == 'list':
-            cache_key = 'lista_de_clientes_api'
-            queryset = cache.get(cache_key)
-            if not queryset:
-                print("--- API CACHE MISS --- Buscando do banco e salvando no Redis.")
-                queryset = base_queryset
-                cache.set(cache_key, queryset, 900)
+            version = cache.get_or_set('clientes_list_version_api', 1)
+            cache_key = f"lista_de_clientes_api_{ordering_params}_v{version}"
+            cached_queryset = cache.get(cache_key)
+            if cached_queryset is None:
+                print(f"--- API CACHE MISS ({cache_key}) --- Buscando do banco e salvando no Redis.")
+                cached_queryset = Cliente.objects.filter(is_deleted=False).order_by(*ordering_params.split(","))
+                cache.set(cache_key, cached_queryset, 900)
             else:
-                print("+++ API CACHE HIT +++ Servindo do Redis!")
-            return queryset
-        
-        # # For retrieve/detail views
-        # elif self.action == 'retrieve':
-        #     return base_queryset.prefetch_related(
-        #         'cliente_atendimento',
-        #         'cliente_titular_requerimento'
-        #     )
+                print(f"+++ API CACHE HIT ({cache_key}) +++ Recuperando do Redis.")
+            return cached_queryset
 
-        # cache_key = 'lista_de_clientes_api'
-        # queryset = cache.get(cache_key)
-        # if not queryset:
-        #     print("--- API CACHE MISS --- Buscando do banco e salvando no Redis.")
-        #     queryset = super().get_queryset()
-        #     cache.set(cache_key, queryset, 900)
-        # else:
-        #     # Se 'clientes' não é None, os dados vieram do cache!
-        #     print("+++ API CACHE HIT +++ Servindo a lista de clientes diretamente do Redis!")
-        # if self.action == 'retrieve':
-        #     queryset = queryset.prefetch_related(
-        #         'cliente_atendimento',
-        #         'cliente_titular_requerimento'
-        #     )
-        # return queryset
+        # Para outras ações (retrieve, update, etc.), busca direto do banco sem cache
+        return Cliente.objects.filter(is_deleted=False)

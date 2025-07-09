@@ -1,13 +1,14 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.cache import cache
 from django.http import Http404
+from django.urls import reverse_lazy
 from django.views.generic import (
-    ListView,
     CreateView,
-    DetailView,
-    UpdateView,
     DeleteView,
+    DetailView,
+    ListView,
+    UpdateView,
 )
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
 from atendimentos.models import Atendimento
 from clientes.models import Cliente
 from atendimentos.forms import AtendimentoModelForm
@@ -20,23 +21,47 @@ from cpprev.permissions import GlobalDefaultPermission
 from requerimentos.models import Requerimento
 
 
-@method_decorator(login_required(login_url="login"), name="dispatch")
-class AtendimentosListView(ListView):
+class AtendimentosListView(LoginRequiredMixin, ListView):
     model = Atendimento
     template_name = "atendimentos.html"
     context_object_name = "atendimentos"
     title = "Atendimentos"
-    ordering = ["-data"]
     paginate_by = 10
+
+    def get_ordering(self):
+        """Retorna a ordenação da requisição ou o padrão."""
+        return self.request.GET.get('ordering', '-data')
+
+    def get_queryset(self):
+        ordering_params = self.get_ordering()
+        ordering = ordering_params.split(',')
+
+        # Otimiza a consulta para evitar o problema N+1
+        base_queryset = self.model.objects.select_related(
+            'cliente', 'requerimento'
+        ).filter(is_deleted=False)
+
+        version = cache.get_or_set('atendimentos_list_version_html', 1)
+        cache_key = f"lista_de_atendimentos_{ordering_params}_v{version}"
+
+        cached_queryset = cache.get(cache_key)
+        if cached_queryset is None:
+            print(f"--- CACHE MISS ({cache_key}) --- Buscando do banco e salvando no Redis.")
+            cached_queryset = base_queryset.order_by(*ordering)
+            cache.set(cache_key, cached_queryset, 900)
+        else:
+            print(f"+++ CACHE HIT ({cache_key}) +++ Servindo a lista do Redis!")
+
+        return cached_queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["title"] = self.title
+        context["current_ordering"] = self.get_ordering()
         return context
 
 
-@method_decorator(login_required(login_url="login"), name="dispatch")
-class AtendimentoCreateView(CreateView):
+class AtendimentoCreateView(LoginRequiredMixin, CreateView):
     model = Atendimento
     template_name = "form.html"
     form_class = AtendimentoModelForm
@@ -44,7 +69,6 @@ class AtendimentoCreateView(CreateView):
 
     def get_initial(self):
         initial = super().get_initial()
-        print(self.kwargs)
         # Filtra o cliente titular do requerimento se is_deleted=False
         if "cpf" in self.kwargs:
             initial["cliente"] = Cliente.objects.filter(is_deleted=False).get(
@@ -58,16 +82,18 @@ class AtendimentoCreateView(CreateView):
         return initial
 
     def get_context_data(self, **kwargs):
-        context = super(AtendimentoCreateView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context["title"] = self.title
         return context
 
     def get_success_url(self):
-        return reverse_lazy("atendimentos")
+        return reverse_lazy(
+            "atendimento",
+            kwargs={"cpf": self.kwargs["cpf"], "pk": self.object.id},
+        )
 
 
-@method_decorator(login_required(login_url="login"), name="dispatch")
-class AtendimentoDetailView(DetailView):
+class AtendimentoDetailView(LoginRequiredMixin, DetailView):
     model = Atendimento
     template_name = "atendimento.html"
     context_object_name = "atendimento"
@@ -82,7 +108,7 @@ class AtendimentoDetailView(DetailView):
         return obj
 
     def get_context_data(self, **kwargs):
-        context = super(AtendimentoDetailView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
         cliente = self.object.cliente
         requerimento = self.object.requerimento
@@ -93,36 +119,34 @@ class AtendimentoDetailView(DetailView):
         return context
 
 
-@method_decorator(login_required(login_url="login"), name="dispatch")
-class AtendimentoUpdateView(UpdateView):
+class AtendimentoUpdateView(LoginRequiredMixin, UpdateView):
     model = Atendimento
     template_name = "form.html"
     form_class = AtendimentoModelForm
     title = "Editando Atendimento"
 
     def get_context_data(self, **kwargs):
-        context = super(AtendimentoUpdateView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context["title"] = self.title
         return context
 
     def get_success_url(self):
-        return reverse_lazy("atendimentos")
+        return reverse_lazy(
+            "atendimento",
+            kwargs={"cpf": self.kwargs["cpf"], "pk": self.object.id},
+        )
 
 
-@method_decorator(login_required(login_url="login"), name="dispatch")
-class AtendimentoDeleteView(DeleteView):
+class AtendimentoDeleteView(LoginRequiredMixin, DeleteView):
     model = Atendimento
     template_name = "delete.html"
-    success_url = reverse_lazy("atendimentos")
     title = "Excluindo Atendimento"
     tipo_objeto = "o atendimento"
-    is_atendimento = True
 
     def get_context_data(self, **kwargs):
-        context = super(AtendimentoDeleteView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context["title"] = self.title
         context["tipo_objeto"] = self.tipo_objeto
-        context["is_atendimento"] = self.is_atendimento
         return context
 
     def get_success_url(self):
@@ -131,7 +155,6 @@ class AtendimentoDeleteView(DeleteView):
 
 class AtendimentoViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, GlobalDefaultPermission)
-    queryset = Atendimento.objects.filter(is_deleted=False)
     serializer_class = AtendimentoSerializer
 
     def get_serializer_class(self):
@@ -139,9 +162,28 @@ class AtendimentoViewSet(viewsets.ModelViewSet):
             return AtendimentoRetrieveSerializer
         return super().get_serializer_class()
 
+    def get_ordering(self):
+        """Retorna a ordenação da requisição ou o padrão."""
+        return self.request.query_params.get("ordering", "-data")
+
     def get_queryset(self):
-        queryset = super().get_queryset()
+        ordering_params = self.get_ordering()
+        base_queryset = self.model.objects.select_related('cliente', 'requerimento').filter(is_deleted=False)
+
         cliente_cpf = self.kwargs.get("cliente_cpf")
         if cliente_cpf:
-            queryset = queryset.filter(cliente__cpf=cliente_cpf)
-        return queryset
+            return base_queryset.filter(cliente__cpf=cliente_cpf).order_by(*ordering_params.split(','))
+
+        if self.action == "list":
+            version = cache.get_or_set('atendimentos_list_version_api', 1)
+            cache_key = f"lista_de_atendimentos_api_{ordering_params}_v{version}"
+            cached_queryset = cache.get(cache_key)
+            if cached_queryset is None:
+                print(f"--- API CACHE MISS ({cache_key}) --- Buscando do banco e salvando no Redis.")
+                cached_queryset = base_queryset.order_by(*ordering_params.split(','))
+                cache.set(cache_key, cached_queryset, 900)
+            else:
+                print(f"+++ API CACHE HIT ({cache_key}) +++ Recuperando do Redis.")
+            return cached_queryset
+
+        return base_queryset

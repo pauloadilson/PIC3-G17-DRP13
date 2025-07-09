@@ -1,18 +1,29 @@
 from django.test import TestCase, Client
 from django.urls import reverse
-from django.contrib.auth.models import User
-
+from django.contrib.auth.models import User, Permission
+from django.contrib.contenttypes.models import ContentType
+from clientes.models import Cliente
 
 class TestViews(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        # Roda apenas uma vez por classe de teste
+        cls.user = User.objects.create_user(username='testuser', password='secretkey')
+        content_type = ContentType.objects.get_for_model(Cliente)
+        permission = Permission.objects.get(
+            codename='add_cliente',
+            content_type=content_type,
+        )
+        cls.user.user_permissions.add(permission)
+
+        # URLs podem ser atributos de classe
+        cls.index_url = reverse("index")
+        cls.clientes_url = reverse("clientes")
+        cls.adicionar_cliente_url = reverse("adicionar_cliente")
 
     def setUp(self):
-        self.client = Client()
-        self.index_url = reverse("index")
-        self.clientes_url = reverse("clientes")
-        self.adicionar_cliente_url = reverse("adicionar_cliente")
-        self.user = User.objects.create(username='testuser')
-        self.user.set_password('secretkey')
-        self.user.save()
+        # Roda antes de cada teste
+        # Assign the permission to the user
         self.client.login(username='testuser', password='secretkey')
 
     def test_index_GET(self):
@@ -50,7 +61,9 @@ class TestViews(TestCase):
 
         # First, check for the 302 redirect
         if response.status_code != 302:
-            print(response.context['form'].errors)
+            print(f"Response content: {response.content}")
+            print(f"Response status code: {response.status_code}")
+
 
         self.assertEqual(response.status_code, 302)
 

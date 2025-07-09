@@ -7,9 +7,19 @@ from clientes.models import Cliente
 @receiver([post_save, post_delete], sender=Cliente)
 def invalidate_cliente_cache(sender, instance, **kwargs):
     """
-    Invalida (deleta) o cache da lista de clientes sempre que um cliente
-    é criado, atualizado ou deletado.
+    Invalida o cache da lista de clientes incrementando um número de versão.
+    Isso garante que tanto as views da web quanto as da API buscarão
+    uma nova lista na próxima requisição, independentemente da ordenação.
     """
-    cache_key = 'lista_de_clientes'
-    cache.delete(cache_key)
-    print(f"Cache '{cache_key}' invalidado devido a uma alteração no cliente: {instance.nome}")
+    # Tenta incrementar as chaves. Se a chave não existir, alguns backends
+    # (como o LocMemCache usado em testes) lançam um ValueError.
+    # Nós o ignoramos, pois se a chave não existe, não há cache para invalidar.
+    try:
+        cache.incr('clientes_list_version_html')
+    except ValueError:
+        pass  # A chave não existe, nada a fazer.
+    try:
+        cache.incr('clientes_list_version_api')
+    except ValueError:
+        pass  # A chave não existe, nada a fazer.
+    print(f"Versões de cache de clientes invalidadas devido a uma alteração no cliente: {instance.nome}")
