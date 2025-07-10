@@ -1,8 +1,9 @@
-from django.test import TestCase, Client
+from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.models import ContentType
 from clientes.models import Cliente
+
 
 class TestViews(TestCase):
     @classmethod
@@ -63,7 +64,6 @@ class TestViews(TestCase):
         if response.status_code != 302:
             print(f"Response content: {response.content}")
             print(f"Response status code: {response.status_code}")
-
 
         self.assertEqual(response.status_code, 302)
 

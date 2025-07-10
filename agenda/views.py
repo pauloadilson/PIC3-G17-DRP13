@@ -1,3 +1,4 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -15,8 +16,6 @@ from agenda.forms import EventoForm
 from cpprev.permissions import GlobalDefaultPermission
 from microsoft_authentication.graph_helper import criar_evento_no_microsoft_graph
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
 import pytz
 from microsoft_authentication.auth_helper import get_token
 from rest_framework import viewsets
@@ -25,27 +24,33 @@ from agenda.serializers import EventoSerializer
 from django.core.cache import cache
 
 
-@method_decorator(login_required(login_url='login'), name='dispatch')
-class AgendaView(ListView):
+class AgendaView(LoginRequiredMixin, ListView):
     model = Evento
     template_name = 'agenda.html'
     context_object_name = 'agenda'
     title = "Agenda"
     paginate_by = 10
 
-    def get_queryset(self):
-        cache_key = f"agenda_de_eventos_{'_'.join(ordering)}"
+    def get_ordering(self):
+        """Retorna a ordenação da requisição ou o padrão."""
+        return self.request.query_params.get('ordering', '-data_inicio')
 
-        eventos = cache.get(cache_key)
-        if eventos is None:
+    def get_queryset(self):
+        ordering_params = self.get_ordering()
+        ordering = ordering_params.split(',')
+
+        version = cache.get_or_set('eventos_list_version_html', 1)
+        cache_key = f"lista_de_clientes_{ordering_params}_v{version}"
+        cached_queryset = cache.get(cache_key)
+        if cached_queryset is None:
             print("--- CACHE MISS --- Buscando do banco e salvando no Redis.")
-            eventos = Evento.objects.all()
+            cached_queryset = Evento.objects.all().order_by(*ordering)
             TIMEOUT = 900
-            cache.set(cache_key, eventos, TIMEOUT)
+            cache.set(cache_key, cached_queryset, TIMEOUT)
         else:
             print("--- CACHE HIT --- Servindo lista de eventos diretamente do Redis!")
 
-        return eventos
+        return cached_queryset
 
     def get_context_data(self, **kwargs):
         context = super(AgendaView, self).get_context_data(**kwargs)
@@ -55,8 +60,7 @@ class AgendaView(ListView):
         return context
 
 
-@method_decorator(login_required(login_url='login'), name='dispatch')
-class EventoCreateView(CreateView):
+class EventoCreateView(LoginRequiredMixin, CreateView):
     model = Evento
     form_class = EventoForm
     template_name = 'form.html'
@@ -98,8 +102,7 @@ class EventoCreateView(CreateView):
         return context
 
 
-@method_decorator(login_required(login_url='login'), name='dispatch')
-class EventoDetailView(View):
+class EventoDetailView(LoginRequiredMixin, View):
     def get(self, request, pk):
         evento = get_object_or_404(Evento, id=pk)
 
@@ -118,8 +121,7 @@ class EventoDetailView(View):
         return JsonResponse(data)
 
 
-@method_decorator(login_required(login_url='login'), name='dispatch')
-class EventoUpdateView(UpdateView):
+class EventoUpdateView(LoginRequiredMixin, UpdateView):
     model = Evento
     form_class = EventoForm
     template_name = 'form.html'
@@ -133,8 +135,7 @@ class EventoUpdateView(UpdateView):
         return context
 
 
-@method_decorator(login_required(login_url="login"), name="dispatch")
-class PrazoView(TemplateView):
+class PrazoView(LoginRequiredMixin, TemplateView):
     template_name = "prazo.html"
     title = "Prazo"
 
@@ -160,26 +161,28 @@ class EventoViewSet(viewsets.ModelViewSet):
         return super().get_serializer_class()
 
     def get_ordering(self):
-        """Dynamic ordering based on request parameters"""
-        ordering = self.request.GET.get('ordering', '-data_inicio')
-        return ordering.split(',') if ordering else ['-data_inicio']
+        """Retorna a ordenação da requisição ou o padrão."""
+        return self.request.query_params.get('ordering', '-data_inicio')
 
     def get_queryset(self):
         """Return a list of eventos, filtering by is_deleted=False."""
-        ordering = self.get_ordering()
-        base_queryset = Evento.objects.order_by(*ordering)
-        
+        ordering_params = self.get_ordering()
+        ordering = ','.join(ordering_params)
+
         # Cache logic ONLY for list view
         if self.action == 'list':
-            cache_key = f"lista_de_eventos_api_{'_'.join(ordering)}"
-            eventos = cache.get(cache_key)
+            version = cache.get_or_set('eventos_list_version_api', 1)
+            cache_key = f"lista_de_eventos_api_{ordering_params}_v{version}"
+            cached_queryset = cache.get(cache_key)
 
-            if eventos is None:
+            if cached_queryset is None:
                 print(f"--- API CACHE MISS ({cache_key}) --- Buscando do banco e salvando no Redis.")
-                eventos = base_queryset
+                cached_queryset = Evento.objects.order_by(*ordering)
                 TIMEOUT = 900
-                cache.set(cache_key, eventos, TIMEOUT)
+                cache.set(cache_key, cached_queryset, TIMEOUT)
             else:
                 print(f"--- API CACHE HIT ({cache_key}) --- Recuperando do Redis.")
-        
-        return eventos
+            return cached_queryset
+
+        # Para outras ações (retrieve, update, etc.), busca direto do banco sem cache
+        return Evento.objects.order_by(*ordering)

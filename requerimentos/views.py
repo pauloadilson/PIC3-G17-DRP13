@@ -1,5 +1,6 @@
 from django.http import Http404
 from django.core.cache import cache
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import (
     CreateView,
     DetailView,
@@ -7,8 +8,6 @@ from django.views.generic import (
     DeleteView,
 )
 from django.views.generic.edit import FormView
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
 from clientes.models import Cliente
 from cpprev.permissions import GlobalDefaultPermission
 from requerimentos.models import (
@@ -48,8 +47,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 
 
-@method_decorator(login_required(login_url="login"), name="dispatch")
-class EscolherTipoRequerimentoView(FormView):
+class EscolherTipoRequerimentoView(LoginRequiredMixin, FormView):
     template_name = "form.html"
     title = "Escolher Tipo de Requerimento"
     form_class = EscolhaTipoRequerimentoForm
@@ -75,8 +73,7 @@ class EscolherTipoRequerimentoView(FormView):
         return context
 
 
-@method_decorator(login_required(login_url="login"), name="dispatch")
-class RequerimentoInicialCreateView(CreateView):
+class RequerimentoInicialCreateView(LoginRequiredMixin, CreateView):
     model = RequerimentoInicial
     form_class = RequerimentoInicialModelForm
     template_name = "form.html"
@@ -119,8 +116,7 @@ class RequerimentoInicialCreateView(CreateView):
         return context
 
 
-@method_decorator(login_required(login_url="login"), name="dispatch")
-class RequerimentoRecursoCreateView(CreateView):
+class RequerimentoRecursoCreateView(LoginRequiredMixin, CreateView):
     model = RequerimentoRecurso
     form_class = RequerimentoRecursoModelForm
     template_name = "form.html"
@@ -161,8 +157,7 @@ class RequerimentoRecursoCreateView(CreateView):
         return context
 
 
-@method_decorator(login_required(login_url="login"), name="dispatch")
-class RequerimentoInicialDetailView(DetailView):
+class RequerimentoInicialDetailView(LoginRequiredMixin, DetailView):
     model = RequerimentoInicial
     template_name = "requerimento.html"
     context_object_name = "requerimento"
@@ -194,8 +189,7 @@ class RequerimentoInicialDetailView(DetailView):
         return context
 
 
-@method_decorator(login_required(login_url="login"), name="dispatch")
-class RequerimentoRecursoDetailView(DetailView):
+class RequerimentoRecursoDetailView(LoginRequiredMixin, DetailView):
     model = RequerimentoRecurso
     template_name = "requerimento.html"
     context_object_name = "requerimento"
@@ -228,8 +222,7 @@ class RequerimentoRecursoDetailView(DetailView):
         return context
 
 
-@method_decorator(login_required(login_url="login"), name="dispatch")
-class RequerimentoUpdateView(UpdateView):
+class RequerimentoUpdateView(LoginRequiredMixin, UpdateView):
     model = Requerimento
     template_name = "form.html"
     form_class = None
@@ -258,7 +251,6 @@ class RequerimentoUpdateView(UpdateView):
         return context
 
 
-@method_decorator(login_required(login_url="login"), name="dispatch")
 class RequerimentoInicialUpdateView(RequerimentoUpdateView):
     model = RequerimentoInicial
     template_name = "form.html"
@@ -273,7 +265,6 @@ class RequerimentoInicialUpdateView(RequerimentoUpdateView):
         )
 
 
-@method_decorator(login_required(login_url="login"), name="dispatch")
 class RequerimentoRecursoUpdateView(RequerimentoUpdateView):
     model = RequerimentoRecurso
     template_name = "form.html"
@@ -288,8 +279,7 @@ class RequerimentoRecursoUpdateView(RequerimentoUpdateView):
         )
 
 
-@method_decorator(login_required(login_url="login"), name="dispatch")
-class RequerimentoInicialDeleteView(DeleteView):
+class RequerimentoInicialDeleteView(LoginRequiredMixin, DeleteView):
     model = RequerimentoInicial
     template_name = "delete.html"
     title = "Excluindo Requerimento Inicial"
@@ -322,8 +312,7 @@ class RequerimentoInicialDeleteView(DeleteView):
         )
 
 
-@method_decorator(login_required(login_url="login"), name="dispatch")
-class RequerimentoRecursoDeleteView(DeleteView):
+class RequerimentoRecursoDeleteView(LoginRequiredMixin, DeleteView):
     model = RequerimentoRecurso
     template_name = "delete.html"
     title = "Excluindo Recurso"
@@ -357,8 +346,7 @@ class RequerimentoRecursoDeleteView(DeleteView):
         )
 
 
-@method_decorator(login_required(login_url="login"), name="dispatch")
-class ExigenciaRequerimentoInicialCreateView(CreateView):
+class ExigenciaRequerimentoInicialCreateView(LoginRequiredMixin, CreateView):
     model = ExigenciaRequerimentoInicial
     template_name = "form.html"
     form_class = ExigenciaRequerimentoInicialModelForm
@@ -395,8 +383,7 @@ class ExigenciaRequerimentoInicialCreateView(CreateView):
         return context
 
 
-@method_decorator(login_required(login_url="login"), name="dispatch")
-class ExigenciaRequerimentoRecursoCreateView(CreateView):
+class ExigenciaRequerimentoRecursoCreateView(LoginRequiredMixin, CreateView):
     model = ExigenciaRequerimentoRecurso
     template_name = "form.html"
     form_class = ExigenciaRequerimentoRecursoModelForm
@@ -431,8 +418,7 @@ class ExigenciaRequerimentoRecursoCreateView(CreateView):
         return context
 
 
-@method_decorator(login_required(login_url="login"), name="dispatch")
-class ExigenciaRequerimentoInicialUpdateView(UpdateView):
+class ExigenciaRequerimentoInicialUpdateView(LoginRequiredMixin, UpdateView):
     model = ExigenciaRequerimentoInicial
     template_name = "form.html"
     form_class = ExigenciaRequerimentoInicialModelForm
@@ -471,8 +457,7 @@ class ExigenciaRequerimentoInicialUpdateView(UpdateView):
         )
 
 
-@method_decorator(login_required(login_url="login"), name="dispatch")
-class ExigenciaRequerimentoRecursoUpdateView(UpdateView):
+class ExigenciaRequerimentoRecursoUpdateView(LoginRequiredMixin, UpdateView):
     model = ExigenciaRequerimentoRecurso
     template_name = "form.html"
     form_class = ExigenciaRequerimentoRecursoModelForm
@@ -511,8 +496,7 @@ class ExigenciaRequerimentoRecursoUpdateView(UpdateView):
         )
 
 
-@method_decorator(login_required(login_url="login"), name="dispatch")
-class ExigenciaRequerimentoInicialDeleteView(DeleteView):
+class ExigenciaRequerimentoInicialDeleteView(LoginRequiredMixin, DeleteView):
     model = ExigenciaRequerimentoInicial
     template_name = "delete.html"
     title = "Excluindo Exigência do Requerimento"
@@ -546,8 +530,7 @@ class ExigenciaRequerimentoInicialDeleteView(DeleteView):
         )
 
 
-@method_decorator(login_required(login_url="login"), name="dispatch")
-class ExigenciaRequerimentoRecursoDeleteView(DeleteView):
+class ExigenciaRequerimentoRecursoDeleteView(LoginRequiredMixin, DeleteView):
     model = ExigenciaRequerimentoRecurso
     template_name = "delete.html"
     title = "Excluindo Exigência do Recurso"
@@ -578,8 +561,7 @@ class ExigenciaRequerimentoRecursoDeleteView(DeleteView):
         )
 
 
-@method_decorator(login_required(login_url='login'), name='dispatch')
-class RequerimentoInicialCienciaView(UpdateView):
+class RequerimentoInicialCienciaView(LoginRequiredMixin, UpdateView):
     model = RequerimentoInicial
     template_name = "form.html"
     form_class = RequerimentoInicialCienciaForm
@@ -615,8 +597,7 @@ class RequerimentoInicialCienciaView(UpdateView):
         return super().form_valid(form)
 
 
-@method_decorator(login_required(login_url='login'), name='dispatch')
-class MudancaEstadoRequerimentoInicialCreateView(CreateView):
+class MudancaEstadoRequerimentoInicialCreateView(LoginRequiredMixin, CreateView):
     model = HistoricoMudancaEstadoRequerimentoInicial
     template_name = "form.html"
     form_class = MudancaEstadoRequerimentoInicialForm
@@ -642,8 +623,7 @@ class MudancaEstadoRequerimentoInicialCreateView(CreateView):
         return context
 
 
-@method_decorator(login_required(login_url='login'), name='dispatch')
-class MudancaEstadoRequerimentoInicialDeleteView(DeleteView):
+class MudancaEstadoRequerimentoInicialDeleteView(LoginRequiredMixin, DeleteView):
     model = HistoricoMudancaEstadoRequerimentoInicial
     template_name = "delete.html"
     title = "Excluindo Mudança de Estado do Requerimento"
@@ -674,8 +654,7 @@ class MudancaEstadoRequerimentoInicialDeleteView(DeleteView):
         )
 
 
-@method_decorator(login_required(login_url='login'), name='dispatch')
-class RequerimentoRecursoCienciaView(UpdateView):
+class RequerimentoRecursoCienciaView(LoginRequiredMixin, UpdateView):
     model = RequerimentoRecurso
     template_name = "form.html"
     form_class = RequerimentoRecursoCienciaForm
@@ -711,8 +690,7 @@ class RequerimentoRecursoCienciaView(UpdateView):
         return super().form_valid(form)
 
 
-@method_decorator(login_required(login_url='login'), name='dispatch')
-class MudancaEstadoRequerimentoRecursoCreateView(CreateView):
+class MudancaEstadoRequerimentoRecursoCreateView(LoginRequiredMixin, CreateView):
     model = HistoricoMudancaEstadoRequerimentoRecurso
     template_name = "form.html"
     form_class = MudancaEstadoRequerimentoRecursoForm
@@ -738,8 +716,7 @@ class MudancaEstadoRequerimentoRecursoCreateView(CreateView):
         return context
 
 
-@method_decorator(login_required(login_url='login'), name='dispatch')
-class MudancaEstadoRequerimentoRecursoDeleteView(DeleteView):
+class MudancaEstadoRequerimentoRecursoDeleteView(LoginRequiredMixin, DeleteView):
     model = HistoricoMudancaEstadoRequerimentoRecurso
     template_name = "delete.html"
     title = "Excluindo Mudança de Estado do Requerimento"
@@ -756,7 +733,7 @@ class MudancaEstadoRequerimentoRecursoDeleteView(DeleteView):
         return context
 
     def get_success_url(self):
-        return reverse_lazy("requerimento_inicial", kwargs={"cpf": self.kwargs["cpf"], "pk": self.kwargs["pk"]})
+        return reverse_lazy("requerimento_recurso", kwargs={"cpf": self.kwargs["cpf"], "pk": self.kwargs["pk"]})
 
     def get_object(self, queryset=None):
         cpf = self.kwargs.get("cpf")
@@ -778,34 +755,41 @@ class RequerimentoInicialViewSet(viewsets.ModelViewSet):
         if self.action == 'retrieve':
             return RequerimentoInicialRetrieveSerializer
         return super().get_serializer_class()
-    
+
     def get_ordering(self):
-        """Dynamic ordering based on request parameters"""
-        ordering = self.request.GET.get('ordering', '-data,protocolo')
-        return ordering.split(',') if ordering else ['-data', 'protocolo']
+        """Retorna a ordenação da requisição ou o padrão."""
+        return self.request.query_params.get('ordering', '-data,protocolo')
 
     def get_queryset(self):
-        ordering = self.get_ordering()
-        base_queryset = RequerimentoInicial.objects.filter(is_deleted=False)
+        ordering_params = self.get_ordering()
+        print(f"--- API ORDERING PARAMS: {ordering_params} ---")
+        ordering = ordering_params.split(',')
+
         cliente_cpf = self.kwargs.get("cliente_cpf")
 
         # Cache logic ONLY for list view without filters
         if self.action == 'list' and not cliente_cpf:
-            cache_key = f"lista_de_requerimentos_iniciais_api_{'_'.join(ordering)}"
-            queryset = cache.get(cache_key)
-            if queryset is None:
+            version = cache.get_or_set('requerimentos_iniciais_list_version_api', 1)
+            cache_key = f"lista_de_requerimentos_iniciais_api_{ordering_params}_v{version}"
+            cached_queryset = cache.get(cache_key)
+            if cached_queryset is None:
                 print(f"--- API CACHE MISS ({cache_key}) --- Buscando do banco e salvando no Redis.")
-                queryset = base_queryset.order_by(*ordering)
+                cached_queryset = RequerimentoInicial.objects.filter(is_deleted=False).order_by(*ordering)
                 TIMEOUT = 900
-                cache.set(cache_key, queryset, TIMEOUT)
+                cache.set(cache_key, cached_queryset, TIMEOUT)
             else:
                 print(f"--- API CACHE HIT ({cache_key}) --- Recuperando do Redis.")
+            return cached_queryset
 
-        if self.action == 'retrieve':
-            queryset = queryset.prefetch_related(
-                'requerimento_inicial_exigencia',
-                'historico_estado_requerimento'
-            )
+        # Para outras ações (update, etc.), busca direto do banco sem cache
+        base_queryset = RequerimentoInicial.objects.filter(is_deleted=False)
+        queryset = base_queryset.prefetch_related(
+            'requerimento_inicial_exigencia',
+            'historico_estado_requerimento'
+        )
+        if cliente_cpf:
+            return queryset.filter(requerente_titular__cpf=cliente_cpf)
+
         return queryset
 
 
@@ -817,39 +801,41 @@ class RequerimentoRecursoViewSet(viewsets.ModelViewSet):
         if self.action == 'retrieve':
             return RequerimentoRecursoRetrieveSerializer
         return super().get_serializer_class()
- 
+
     def get_ordering(self):
-        """Dynamic ordering based on request parameters"""
-        ordering = self.request.GET.get('ordering', '-data,protocolo')
-        return ordering.split(',') if ordering else ['-data', 'protocolo']
+        """Retorna a ordenação da requisição ou o padrão."""
+        return self.request.query_params.get('ordering', '-data,protocolo')
 
     def get_queryset(self):
-        ordering = self.get_ordering()
-        base_queryset = RequerimentoRecurso.objects.filter(is_deleted=False)
-        cliente_cpf = self.kwargs.get("cliente_cpf")
+        ordering_params = self.get_ordering()
+        print(f"--- API ORDERING PARAMS: {ordering_params} ---")
+        ordering = ordering_params.split(',')
 
+        cliente_cpf = self.kwargs.get("cliente_cpf")
         # Cache logic ONLY for list view without filters
         if self.action == 'list' and not cliente_cpf:
-            cache_key = f"lista_de_requerimentos_recursos_api_{'_'.join(ordering)}"
-            queryset = cache.get(cache_key)
-            if queryset is None:
+            version = cache.get_or_set('requerimentos_recursos_list_version_api', 1)
+            cache_key = f"lista_de_requerimentos_recursos_api_{ordering_params}_v{version}"
+            cached_queryset = cache.get(cache_key)
+            if cached_queryset is None:
                 print(f"--- API CACHE MISS ({cache_key}) --- Buscando do banco e salvando no Redis.")
-                queryset = base_queryset.order_by(*ordering)
+                cached_queryset = RequerimentoRecurso.objects.filter(is_deleted=False).order_by(*ordering)
                 TIMEOUT = 900
-                cache.set(cache_key, queryset, TIMEOUT)
+                cache.set(cache_key, cached_queryset, TIMEOUT)
             else:
                 print(f"--- API CACHE HIT ({cache_key}) --- Recuperando do Redis.")
-            return queryset
+            return cached_queryset
 
+        base_queryset = RequerimentoRecurso.objects.filter(is_deleted=False)
         # Default behavior for other actions or filtered list
-        queryset = base_queryset.order_by(*ordering)
-        if cliente_cpf:
-            queryset = queryset.filter(requerente_titular__cpf=cliente_cpf)
         if self.action == 'retrieve':
-            queryset = queryset.prefetch_related(
+            queryset = base_queryset.prefetch_related(
                 'requerimento_recurso_exigencia',
                 'historico_estado_requerimento'
             )
+        if cliente_cpf:
+            return queryset.filter(requerente_titular__cpf=cliente_cpf)
+
         return queryset
 
 
@@ -858,32 +844,34 @@ class ExigenciaRequerimentoInicialViewSet(viewsets.ModelViewSet):
     serializer_class = ExigenciaRequerimentoInicialSerializer
 
     def get_ordering(self):
-        """Dynamic ordering based on request parameters"""
-        ordering = self.request.GET.get('ordering', '-data')
-        return ordering.split(',') if ordering else ['-data']
+        """Retorna a ordenação da requisição ou o padrão."""
+        return self.request.query_params.get('ordering', '-data')
 
     def get_queryset(self):
-        ordering = self.get_ordering()
-        base_queryset = ExigenciaRequerimentoInicial.objects.filter(is_deleted=False)
+        ordering_params = self.get_ordering()
+        ordering = ordering_params.split(',')
+
         requerimento_id = self.kwargs.get("req_inicial_pk")
 
         # Cache logic ONLY for the global list view (when not nested)
         if self.action == 'list' and not requerimento_id:
-            cache_key = f"lista_de_exigencias_iniciais_api_{'_'.join(ordering)}"
-            queryset = cache.get(cache_key)
-            if queryset is None:
+            version = cache.get_or_set('exigencias_iniciais_list_version_api', 1)
+            cache_key = f"lista_de_exigencias_iniciais_api_{ordering_params}_v{version}"
+            cached_queryset = cache.get(cache_key)
+            if cached_queryset is None:
                 print(f"--- API CACHE MISS ({cache_key}) --- Buscando do banco e salvando no Redis.")
-                queryset = base_queryset.order_by(*ordering)
+                cached_queryset = ExigenciaRequerimentoInicial.objects.filter(is_deleted=False).order_by(*ordering)
                 TIMEOUT = 900
-                cache.set(cache_key, queryset, TIMEOUT)
+                cache.set(cache_key, cached_queryset, TIMEOUT)
             else:
                 print(f"--- API CACHE HIT ({cache_key}) --- Recuperando do Redis.")
-            return queryset
+            return cached_queryset
 
         # Default behavior for other actions or filtered list
-        queryset = base_queryset.order_by(*ordering)
+        queryset = ExigenciaRequerimentoInicial.objects.filter(is_deleted=False)
         if requerimento_id:
-            queryset = queryset.filter(requerimento__id=requerimento_id)
+            return queryset.filter(requerimento__id=requerimento_id)
+
         return queryset
 
 
@@ -892,98 +880,104 @@ class ExigenciaRequerimentoRecursoViewSet(viewsets.ModelViewSet):
     serializer_class = ExigenciaRequerimentoRecursoSerializer
 
     def get_ordering(self):
-        """Dynamic ordering based on request parameters"""
-        ordering = self.request.GET.get('ordering', '-data')
-        return ordering.split(',') if ordering else ['-data']
+        """Retorna a ordenação da requisição ou o padrão."""
+        return self.request.query_params.get('ordering', '-data')
 
     def get_queryset(self):
-        ordering = self.get_ordering()
-        base_queryset = ExigenciaRequerimentoRecurso.objects.filter(is_deleted=False)
+        ordering_params = self.get_ordering()
+        ordering = ordering_params.split(',')
+
         requerimento_id = self.kwargs.get("req_recurso_pk")
 
         # Cache logic ONLY for the global list view (when not nested)
         if self.action == 'list' and not requerimento_id:
-            cache_key = f"lista_de_exigencias_recursos_api_{'_'.join(ordering)}"
-            queryset = cache.get(cache_key)
-            if queryset is None:
+            version = cache.get_or_set('exigencias_recursos_list_version_api', 1)
+            cache_key = f"lista_de_exigencias_recursos_api_{ordering_params}_v{version}"
+            cached_queryset = cache.get(cache_key)
+            if cached_queryset is None:
                 print(f"--- API CACHE MISS ({cache_key}) --- Buscando do banco e salvando no Redis.")
-                queryset = base_queryset.order_by(*ordering)
+                cached_queryset = ExigenciaRequerimentoRecurso.objects.filter(is_deleted=False).order_by(*ordering)
                 TIMEOUT = 900
-                cache.set(cache_key, queryset, TIMEOUT)
+                cache.set(cache_key, cached_queryset, TIMEOUT)
             else:
                 print(f"--- API CACHE HIT ({cache_key}) --- Recuperando do Redis.")
-            return queryset
+            return cached_queryset
 
         # Default behavior for other actions or filtered list
-        queryset = base_queryset.order_by(*ordering)
+        queryset = ExigenciaRequerimentoRecurso.objects.filter(is_deleted=False)
         if requerimento_id:
-            queryset = queryset.filter(requerimento__id=requerimento_id)
+            return queryset.filter(requerimento__id=requerimento_id)
+
         return queryset
+
 
 class HistoricoMudancaEstadoRequerimentoInicialViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, GlobalDefaultPermission)
     serializer_class = HistoricoMudancaEstadoRequerimentoInicialSerializer
 
     def get_ordering(self):
-        """Dynamic ordering based on request parameters"""
-        ordering = self.request.GET.get('ordering', '-data_mudanca')
-        return ordering.split(',') if ordering else ['-data_mudanca']
+        """Retorna a ordenação da requisição ou o padrão."""
+        return self.request.query_params.get('ordering', '-data_mudanca')
 
     def get_queryset(self):
-        ordering = self.get_ordering()
-        base_queryset = HistoricoMudancaEstadoRequerimentoInicial.objects.filter(is_deleted=False)
+        ordering_params = self.get_ordering()
+        ordering = ordering_params.split(',')
+
         requerimento_id = self.kwargs.get("req_inicial_pk")
 
         # Cache logic ONLY for the global list view (when not nested)
         if self.action == 'list' and not requerimento_id:
-            cache_key = f"lista_de_mudancas_de_estado_iniciais_api_{'_'.join(ordering)}"
-            queryset = cache.get(cache_key)
-            if queryset is None:
+            version = cache.get_or_set('mudancas_de_estado_iniciais_list_version_api', 1)
+            cache_key = f"lista_de_mudancas_de_estado_iniciais_api_{ordering_params}_v{version}"
+            cached_queryset = cache.get(cache_key)
+            if cached_queryset is None:
                 print(f"--- API CACHE MISS ({cache_key}) --- Buscando do banco e salvando no Redis.")
-                queryset = base_queryset.order_by(*ordering)
+                cached_queryset = HistoricoMudancaEstadoRequerimentoInicial.objects.filter(is_deleted=False).order_by(*ordering)
                 TIMEOUT = 900
-                cache.set(cache_key, queryset, TIMEOUT)
+                cache.set(cache_key, cached_queryset, TIMEOUT)
             else:
                 print(f"--- API CACHE HIT ({cache_key}) --- Recuperando do Redis.")
-            return queryset
+            return cached_queryset
 
         # Default behavior for other actions or filtered list
-        queryset = base_queryset.order_by(*ordering)
+        queryset = HistoricoMudancaEstadoRequerimentoInicial.objects.filter(is_deleted=False)
         if requerimento_id:
-            queryset = queryset.filter(requerimento__id=requerimento_id)
+            return queryset.filter(requerimento__id=requerimento_id)
+
         return queryset
 
 
 class HistoricoMudancaEstadoRequerimentoRecursoViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated, GlobalDefaultPermission)
-    queryset = HistoricoMudancaEstadoRequerimentoRecurso.objects.filter(is_deleted=False)
     serializer_class = HistoricoMudancaEstadoRequerimentoRecursoSerializer
 
     def get_ordering(self):
-        """Dynamic ordering based on request parameters"""
-        ordering = self.request.GET.get('ordering', '-data_mudanca')
-        return ordering.split(',') if ordering else ['-data_mudanca']
+        """Retorna a ordenação da requisição ou o padrão."""
+        return self.request.query_params.get('ordering', '-data_mudanca')
 
     def get_queryset(self):
-        ordering = self.get_ordering()
-        base_queryset = HistoricoMudancaEstadoRequerimentoRecurso.objects.filter(is_deleted=False)
+        ordering_params = self.get_ordering()
+        ordering = ordering_params.split(',')
+
         requerimento_id = self.kwargs.get("req_recurso_pk")
 
         # Cache logic ONLY for the global list view (when not nested)
         if self.action == 'list' and not requerimento_id:
-            cache_key = f"lista_de_mudancas_de_estado_recursos_api_{'_'.join(ordering)}"
-            queryset = cache.get(cache_key)
-            if queryset is None:
+            version = cache.get_or_set('mudancas_de_estado_recursos_list_version_api', 1)
+            cache_key = f"lista_de_mudancas_de_estado_recursos_api_{ordering_params}_v{version}"
+            cached_queryset = cache.get(cache_key)
+            if cached_queryset is None:
                 print(f"--- API CACHE MISS ({cache_key}) --- Buscando do banco e salvando no Redis.")
-                queryset = base_queryset.order_by(*ordering)
+                cached_queryset = HistoricoMudancaEstadoRequerimentoRecurso.objects.filter(is_deleted=False).order_by(*ordering)
                 TIMEOUT = 900
-                cache.set(cache_key, queryset, TIMEOUT)
+                cache.set(cache_key, cached_queryset, TIMEOUT)
             else:
                 print(f"--- API CACHE HIT ({cache_key}) --- Recuperando do Redis.")
-            return queryset
+            return cached_queryset
 
         # Default behavior for other actions or filtered list
-        queryset = base_queryset.order_by(*ordering)
+        queryset = HistoricoMudancaEstadoRequerimentoRecurso.objects.filter(is_deleted=False)
         if requerimento_id:
-            queryset = queryset.filter(requerimento__id=requerimento_id)
+            return queryset.filter(requerimento__id=requerimento_id)
+
         return queryset

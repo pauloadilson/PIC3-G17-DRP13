@@ -203,6 +203,9 @@ CRISPY_TEMPLATE_PACK = "bootstrap5"
 # Configure Django App for Heroku.
 django_heroku.settings(locals())
 
+# URL de login padrão para LoginRequiredMixin
+LOGIN_URL = 'login'
+
 MICROSOFT_AUTH_CLIENT_ID = os.environ.get('MICROSOFT_AUTH_CLIENT_ID')
 MICROSOFT_AUTH_CLIENT_SECRET = os.environ.get('MICROSOFT_AUTH_CLIENT_SECRET')
 MICROSOFT_AUTH_TENANT_ID = os.environ.get('MICROSOFT_AUTH_TENANT_ID')

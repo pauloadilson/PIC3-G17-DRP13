@@ -12,4 +12,3 @@ class SoftDeleteGetMixin:
         if getattr(obj, 'is_deleted', False):
             raise Http404(f"{self.model._meta.verbose_name.capitalize()} não encontrado")
         return obj
-

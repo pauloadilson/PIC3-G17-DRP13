@@ -1,4 +1,4 @@
-from django.test import TransactionTestCase
+from django.test import TestCase
 import uuid
 from django.urls import reverse
 from django.contrib.auth.models import User
@@ -17,6 +17,8 @@ from requerimentos.models import (
     ExigenciaRequerimentoRecurso,
     HistoricoMudancaEstadoRequerimentoInicial,
 )
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import Permission
 
 
 def generate_unique_cpf():
@@ -27,13 +29,36 @@ def generate_unique_protocolo():
     return str(uuid.uuid4().int)[:15]
 
 
-class TestRequerimentoViews(TransactionTestCase):
+class TestRequerimentoViews(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        # Roda apenas uma vez por classe de teste
+        cls.user = User.objects.create_user(username='testuser', password='secretkey')
+        content_type = ContentType.objects.get_for_model(Cliente)
+        permission = Permission.objects.get(
+            codename='add_cliente',
+            content_type=content_type,
+        )
+        cls.user.user_permissions.add(permission)
+
+        # Create a Servico instance (objeto de referência que não muda)
+        cls.servico = Servico.objects.create(
+            nome="Aposentadoria por Idade Urbana"
+        )
+
+        # Create Estado objects for requerimentos (objetos de referência)
+        cls.estado_inicial = EstadoRequerimentoInicial.objects.create(nome="em análise")
+        cls.estado_recurso = EstadoRequerimentoRecurso.objects.create(nome="em análise na junta")
+
+        # Objects for exigencias (objetos de configuração que não mudam)
+        cls.natureza = Natureza.objects.create(nome="Documentacao")
+        cls.estado_exigencia = EstadoExigencia.objects.create(nome="em análise")
+
     def setUp(self):
-        # Create and login a dummy user
-        self.user = User.objects.create_user(username="testuser", password="testpass")
+        # Login do usuário a cada teste
         self.client.force_login(self.user)
 
-        # Create a Cliente instance for testing
+        # Create a Cliente instance for testing (precisa ser único a cada teste)
         self.cpf = generate_unique_cpf()
         self.cliente = Cliente.objects.create(
             cpf=self.cpf,
@@ -43,16 +68,7 @@ class TestRequerimentoViews(TransactionTestCase):
             email="teste@cliente.com",
         )
 
-        # Create a Servico instance
-        self.servico = Servico.objects.create(
-            nome="Aposentadoria por Idade Urbana"
-        )
-
-        # Create Estado objects for requerimentos
-        self.estado_inicial = EstadoRequerimentoInicial.objects.create(nome="em análise")
-        self.estado_recurso = EstadoRequerimentoRecurso.objects.create(nome="em análise na junta")
-
-        # Create RequerimentoInicial and RequerimentoRecurso objects for detail/update/delete views
+        # Create RequerimentoInicial and RequerimentoRecurso objects (dependem do cliente único)
         self.protocolo_inicial = generate_unique_protocolo()
         self.requerimento_inicial = RequerimentoInicial.objects.create(
             protocolo=self.protocolo_inicial,
@@ -71,10 +87,6 @@ class TestRequerimentoViews(TransactionTestCase):
             data="2021-02-02",
             estado=self.estado_recurso,
         )
-
-        # Objects for exigencias
-        self.natureza = Natureza.objects.create(nome="Documentacao")
-        self.estado_exigencia = EstadoExigencia.objects.create(nome="em análise")
 
     def test_escolher_tipo_requerimento_get(self):
         url = reverse("escolher_tipo_requerimento", kwargs={"cpf": self.cliente.cpf})
@@ -241,6 +253,20 @@ class TestRequerimentoViews(TransactionTestCase):
     def test_mudanca_estado_requerimento_inicial_create_view_get(self):
         # Create EstadoExigencia instance
         estado_novo = EstadoRequerimentoInicial.objects.create(nome="Concluído Deferido")
+
+        # Create HistoricoMudancaEstadoRequerimentoInicial instance
+        HistoricoMudancaEstadoRequerimentoInicial.objects.create(
+            requerimento=self.requerimento_inicial,
+            estado_anterior=self.requerimento_inicial.estado,
+            estado_novo=estado_novo,
+            observacao="Teste mudança",
+            data_mudanca=timezone.now(),
+        )
+        self.assertEqual(self.requerimento_inicial.estado, estado_novo)
+
+    def test_mudanca_estado_requerimento_inicial_create_indeferido_view_get(self):
+        # Create EstadoExigencia instance
+        estado_novo = EstadoRequerimentoInicial.objects.create(nome="Concluído Indeferido")
 
         # Create HistoricoMudancaEstadoRequerimentoInicial instance
         HistoricoMudancaEstadoRequerimentoInicial.objects.create(

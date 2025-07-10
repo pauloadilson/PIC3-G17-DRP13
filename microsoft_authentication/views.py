@@ -1,4 +1,5 @@
 from django.contrib.auth.views import LoginView
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.contrib.auth.forms import AuthenticationForm
 from django.http import HttpResponseRedirect
@@ -6,8 +7,6 @@ from django.views import View
 from microsoft_authentication.auth_helper import get_sign_in_flow, get_token_from_code, store_user, remove_user_and_token
 from microsoft_authentication.graph_helper import get_user
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.utils.decorators import method_decorator
 
 
 class CustomLoginView(LoginView):
@@ -26,20 +25,7 @@ class CustomLoginView(LoginView):
         return context
 
 
-@method_decorator(login_required(login_url='login'), name='dispatch')
-def initialize_context(request):
-    context = {}
-    error = request.session.pop('flash_error', None)
-    if error is not None:
-        context['errors'] = []
-    context['errors'].append(error)
-    # Check for user in the session
-    context['user'] = request.session.get('user', {'is_authenticated': False})
-    return context
-
-
-@method_decorator(login_required(login_url='login'), name='dispatch')
-class SignInView(View):
+class SignInView(LoginRequiredMixin, View):
     def get(self, *args, **kwargs):
         # Get the sign-in flow
         flow = get_sign_in_flow()
@@ -62,8 +48,7 @@ class SignOutView(View):
         return response
 
 
-@method_decorator(login_required(login_url='login'), name='dispatch')
-class CallbackView(View):
+class CallbackView(LoginRequiredMixin, View):
     def get(self, *args, **kwargs):
         # Make the token request
         result = get_token_from_code(self.request)

@@ -20,7 +20,7 @@ from rest_framework.permissions import IsAuthenticated
 from atendimentos.models import Atendimento
 from agenda.models import Evento
 from clientes.forms import ClienteModelForm
-from clientes.mixins import SoftDeleteGetMixin
+from cpprev.mixins import SoftDeleteGetMixin
 from clientes.models import Cliente
 from clientes.serializers import (
     ClienteRetrieveSerializer,
@@ -56,7 +56,6 @@ class ClientesListView(LoginRequiredMixin, ListView):
     context_object_name = "clientes"
     title = "Clientes"
     paginate_by = 10
-    login_url = "login"
 
     def get_ordering(self):
         """Retorna a ordenação da requisição ou o padrão."""
@@ -100,7 +99,6 @@ class ClienteCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView)
     form_class = ClienteModelForm
     title = "Novo Cliente"
     permission_required = "clientes.add_cliente"  # Permissão padrão do Django
-    login_url = "login"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -117,7 +115,6 @@ class ClienteDetailView(LoginRequiredMixin, SoftDeleteGetMixin, DetailView):
     context_object_name = "cliente"
     slug_field = "cpf"
     slug_url_kwarg = "cpf"
-    login_url = "login"
 
     def get_queryset(self):
         # Otimiza as consultas, buscando tudo de uma vez com prefetch_related
@@ -161,7 +158,6 @@ class ClienteUpdateView(LoginRequiredMixin, SoftDeleteGetMixin, UpdateView):
     title = "Editando Cliente"
     slug_field = "cpf"
     slug_url_kwarg = "cpf"
-    login_url = "login"
 
     def get_success_url(self):
         return reverse_lazy("cliente", kwargs={"cpf": self.object.cpf})
@@ -181,7 +177,6 @@ class ClienteDeleteView(LoginRequiredMixin, SoftDeleteGetMixin, DeleteView):
     tipo_objeto = "o cliente"
     slug_field = "cpf"
     slug_url_kwarg = "cpf"
-    login_url = "login"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

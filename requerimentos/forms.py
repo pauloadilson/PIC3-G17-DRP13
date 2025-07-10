@@ -3,7 +3,6 @@ from requerimentos.models import (
     HistoricoMudancaEstadoRequerimentoRecurso,
     RequerimentoInicial,
     RequerimentoRecurso,
-    Exigencia,
     EstadoRequerimentoInicial,
     HistoricoMudancaEstadoRequerimentoInicial,
     EstadoRequerimentoRecurso,
