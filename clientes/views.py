@@ -13,7 +13,10 @@ from django.views.generic import (
     ListView,
     TemplateView,
     UpdateView,
+    View,
 )
+from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
@@ -104,6 +107,23 @@ class ClienteCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView)
         context = super().get_context_data(**kwargs)
         context["title"] = self.title
         return context
+
+    def form_valid(self, form):
+        # Verifica se o formulário reativou um cliente
+        if hasattr(form, '_reactivating_cliente'):
+            messages.success(
+                self.request,
+                f"Cliente {form._reactivating_cliente.nome} foi reativado e atualizado com os novos dados!"
+            )
+        response = super().form_valid(form)
+
+        # Invalida o cache após criar/reativar cliente
+        cache.delete_many([
+            'clientes_list_version_html',
+            'clientes_list_version_api'
+        ])
+
+        return response
 
     def get_success_url(self):
         return reverse_lazy("cliente", kwargs={"cpf": self.object.cpf})
@@ -232,3 +252,47 @@ class ClienteViewSet(viewsets.ModelViewSet):
 
         # Para outras ações (retrieve, update, etc.), busca direto do banco sem cache
         return Cliente.objects.filter(is_deleted=False)
+
+
+class ClienteReactivateView(LoginRequiredMixin, PermissionRequiredMixin, View):
+    """View para reativar clientes que foram soft deleted"""
+    permission_required = "clientes.add_cliente"
+
+    def post(self, request, cpf):
+        # Busca o cliente soft deleted
+        cliente = get_object_or_404(Cliente, cpf=cpf, is_deleted=True)
+
+        # Reativa o cliente
+        cliente.is_deleted = False
+        cliente.save()
+
+        # Invalida o cache
+        cache.delete_many([
+            cache.get('clientes_list_version_html', 1),
+            cache.get('clientes_list_version_api', 1)
+        ])
+
+        messages.success(
+            request,
+            f"Cliente {cliente.nome} (CPF: {cliente.cpf}) foi reativado com sucesso!"
+        )
+
+        return redirect('cliente', cpf=cliente.cpf)
+
+
+class ClientesDeletedListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    """View para listar clientes que foram soft deleted"""
+    model = Cliente
+    template_name = "clientes_deleted.html"
+    context_object_name = "clientes_deleted"
+    title = "Clientes Removidos"
+    paginate_by = 10
+    permission_required = "clientes.view_cliente"
+
+    def get_queryset(self):
+        return Cliente.objects.filter(is_deleted=True).order_by('nome')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["title"] = self.title
+        return context

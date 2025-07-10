@@ -65,6 +65,8 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
 ]
 
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'https://cpprev.local,http://cpprev.local').split(',')   
+
 ROOT_URLCONF = "cpprev.urls"
 
 TEMPLATES = [

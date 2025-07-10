@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load bootstrap_icons %}
+{% block content %}
+{% load django_bootstrap5 %}
+
+<main class="content mb-5">
+  <div class="container-fluid">
+    <div class="p-1 mt-3">
+      <div class="display-5">Clientes Removidos</div>
+      <hr />
+      <p class="d-inline-flex gap-1">
+        <a class="btn btn-secondary" href="{% url 'clientes' %}" role="button">
+          Voltar para Clientes Ativos
+        </a>
+      </p>
+    </div>
+
+    {% if clientes_deleted %}
+    <div class="p-1 overflow-x-auto">
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">CPF</th>
+            <th scope="col">Nome</th>
+            <th scope="col">Data de Nascimento</th>
+            <th scope="col">Telefone</th>
+            <th scope="col">E-mail</th>
+            <th scope="col">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cliente in clientes_deleted %}
+          <tr>
+            <td>{{ cliente.cpf }}</td>
+            <td>{{ cliente.nome }}</td>
+            <td>{{ cliente.data_nascimento|date:"d/m/Y" }}</td>
+            <td>{{ cliente.telefone_whatsapp|default:cliente.telefone|default:"--" }}</td>
+            <td>{{ cliente.email|default:"--" }}</td>
+            <td>
+              <form method="post" action="{% url 'reativar_cliente' cliente.cpf %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success btn-sm" 
+                        onclick="return confirm('Tem certeza que deseja reativar este cliente?')">
+                  {% bs_icon 'arrow-clockwise' %} Reativar
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Paginação -->
+    {% if is_paginated %}
+    <nav aria-label="Paginação">
+      <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page=1">&laquo; Primeira</a>
+        </li>
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+        </li>
+        {% endif %}
+
+        <li class="page-item active">
+          <span class="page-link">
+            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+          </span>
+        </li>
+
+        {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}">Próxima</a>
+        </li>
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Última &raquo;</a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="alert alert-info" role="alert">
+      <h4 class="alert-heading">Nenhum cliente removido</h4>
+      <p>Não há clientes marcados como removidos no sistema.</p>
+    </div>
+    {% endif %}
+  </div>
+</main>
+{% endblock content %}

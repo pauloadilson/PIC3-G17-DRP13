@@ -6,15 +6,19 @@ from clientes.views import (
     ClienteDetailView,
     ClienteUpdateView,
     ClienteDeleteView,
+    ClientesDeletedListView,
+    ClienteReactivateView,
 )
 
 urlpatterns = [
     path("", IndexView.as_view(), name="index"),
     path("clientes/", ClientesListView.as_view(), name="clientes"),
+    path("clientes/removidos/", ClientesDeletedListView.as_view(), name="clientes_removidos"),
     path("cliente/", include([
         path('adicionar', ClienteCreateView.as_view(), name='adicionar_cliente'),
         path('<str:cpf>', ClienteDetailView.as_view(), name='cliente'),
         path('<str:cpf>/atualizar', ClienteUpdateView.as_view(), name='atualizar_cliente'),
         path('<str:cpf>/excluir', ClienteDeleteView.as_view(), name='excluir_cliente'),
+        path('<str:cpf>/reativar', ClienteReactivateView.as_view(), name='reativar_cliente'),
     ])),
 ]
