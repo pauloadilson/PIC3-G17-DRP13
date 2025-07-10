@@ -1,6 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.cache import cache
-from django.http import Http404
 from django.urls import reverse_lazy
 from django.views.generic import (
     CreateView,
@@ -17,6 +16,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
 
 from cpprev.permissions import GlobalDefaultPermission
+from cpprev.mixins import SoftDeleteGetMixin
 from requerimentos.models import Requerimento
 
 
@@ -92,19 +92,13 @@ class AtendimentoCreateView(LoginRequiredMixin, CreateView):
         )
 
 
-class AtendimentoDetailView(LoginRequiredMixin, DetailView):
+class AtendimentoDetailView(LoginRequiredMixin, SoftDeleteGetMixin, DetailView):
     model = Atendimento
     template_name = "atendimento.html"
     context_object_name = "atendimento"
     title = "Atendimento"
 
     cliente_id = None
-
-    def get_object(self, queryset=None):
-        obj = super().get_object(queryset)
-        if obj.is_deleted:
-            raise Http404("Atendimento não encontrado")
-        return obj
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -118,7 +112,7 @@ class AtendimentoDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class AtendimentoUpdateView(LoginRequiredMixin, UpdateView):
+class AtendimentoUpdateView(LoginRequiredMixin, SoftDeleteGetMixin, UpdateView):
     model = Atendimento
     template_name = "form.html"
     form_class = AtendimentoModelForm
@@ -136,7 +130,7 @@ class AtendimentoUpdateView(LoginRequiredMixin, UpdateView):
         )
 
 
-class AtendimentoDeleteView(LoginRequiredMixin, DeleteView):
+class AtendimentoDeleteView(LoginRequiredMixin, SoftDeleteGetMixin, DeleteView):
     model = Atendimento
     template_name = "delete.html"
     title = "Excluindo Atendimento"

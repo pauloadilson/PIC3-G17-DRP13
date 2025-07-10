@@ -1,4 +1,3 @@
-from django.http import Http404
 from django.core.cache import cache
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import (
@@ -10,6 +9,7 @@ from django.views.generic import (
 from django.views.generic.edit import FormView
 from clientes.models import Cliente
 from cpprev.permissions import GlobalDefaultPermission
+from cpprev.mixins import SoftDeleteGetMixin
 from requerimentos.models import (
     HistoricoMudancaEstadoRequerimentoInicial,
     HistoricoMudancaEstadoRequerimentoRecurso,
@@ -157,19 +157,13 @@ class RequerimentoRecursoCreateView(LoginRequiredMixin, CreateView):
         return context
 
 
-class RequerimentoInicialDetailView(LoginRequiredMixin, DetailView):
+class RequerimentoInicialDetailView(LoginRequiredMixin, SoftDeleteGetMixin, DetailView):
     model = RequerimentoInicial
     template_name = "requerimento.html"
     context_object_name = "requerimento"
     title = "Requerimento"
 
     cliente_id = None
-
-    def get_object(self, queryset=None):
-        obj = super().get_object(queryset)
-        if obj.is_deleted:
-            raise Http404("Requerimento não encontrado")
-        return obj
 
     def get_context_data(self, **kwargs):
         context = super(RequerimentoInicialDetailView, self).get_context_data(**kwargs)
@@ -189,19 +183,13 @@ class RequerimentoInicialDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class RequerimentoRecursoDetailView(LoginRequiredMixin, DetailView):
+class RequerimentoRecursoDetailView(LoginRequiredMixin, SoftDeleteGetMixin, DetailView):
     model = RequerimentoRecurso
     template_name = "requerimento.html"
     context_object_name = "requerimento"
     title = "Recurso"
 
     cliente_id = None
-
-    def get_object(self, queryset=None):
-        obj = super().get_object(queryset)
-        if obj.is_deleted:
-            raise Http404("Recurso não encontrado")
-        return obj
 
     def get_context_data(self, **kwargs):
         context = super(RequerimentoRecursoDetailView, self).get_context_data(**kwargs)
@@ -222,18 +210,12 @@ class RequerimentoRecursoDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class RequerimentoUpdateView(LoginRequiredMixin, UpdateView):
+class RequerimentoUpdateView(LoginRequiredMixin, SoftDeleteGetMixin, UpdateView):
     model = Requerimento
     template_name = "form.html"
     form_class = None
     title = "Editando Requerimento"
     form_title_identificador = None
-
-    def get_object(self, queryset=None):
-        obj = super().get_object(queryset)
-        if obj.is_deleted:
-            raise Http404("Requerimento não encontrado")
-        return obj
 
     def form_valid(self, form):
         return super().form_valid(form)
@@ -279,7 +261,7 @@ class RequerimentoRecursoUpdateView(RequerimentoUpdateView):
         )
 
 
-class RequerimentoInicialDeleteView(LoginRequiredMixin, DeleteView):
+class RequerimentoInicialDeleteView(LoginRequiredMixin, SoftDeleteGetMixin, DeleteView):
     model = RequerimentoInicial
     template_name = "delete.html"
     title = "Excluindo Requerimento Inicial"
@@ -300,19 +282,13 @@ class RequerimentoInicialDeleteView(LoginRequiredMixin, DeleteView):
         context["result_list"] = result_list
         return context
 
-    def get_object(self, queryset=None):
-        obj = super().get_object(queryset)
-        if obj.is_deleted:
-            raise Http404("Requerimento não encontrado")
-        return obj
-
     def get_success_url(self):
         return reverse_lazy(
             "cliente", kwargs={"pk": self.object.requerente_titular.cpf}
         )
 
 
-class RequerimentoRecursoDeleteView(LoginRequiredMixin, DeleteView):
+class RequerimentoRecursoDeleteView(LoginRequiredMixin, SoftDeleteGetMixin, DeleteView):
     model = RequerimentoRecurso
     template_name = "delete.html"
     title = "Excluindo Recurso"
@@ -333,12 +309,6 @@ class RequerimentoRecursoDeleteView(LoginRequiredMixin, DeleteView):
         context["qtde_instancias_filhas"] = qtde_instancias_filhas
         context["result_list"] = result_list
         return context
-
-    def get_object(self, queryset=None):
-        obj = super().get_object(queryset)
-        if obj.is_deleted:
-            raise Http404("Requerimento não encontrado")
-        return obj
 
     def get_success_url(self):
         return reverse_lazy(
@@ -561,18 +531,12 @@ class ExigenciaRequerimentoRecursoDeleteView(LoginRequiredMixin, DeleteView):
         )
 
 
-class RequerimentoInicialCienciaView(LoginRequiredMixin, UpdateView):
+class RequerimentoInicialCienciaView(LoginRequiredMixin, SoftDeleteGetMixin, UpdateView):
     model = RequerimentoInicial
     template_name = "form.html"
     form_class = RequerimentoInicialCienciaForm
     title = "Ciência no Requerimento Inicial"
     form_title_identificador = None
-
-    def get_object(self, queryset=None):
-        obj = super().get_object(queryset)
-        if obj.is_deleted:
-            raise Http404("Requerimento não encontrado")
-        return obj
 
     def get_success_url(self):
         return reverse_lazy("requerimento_inicial", kwargs={"cpf": self.kwargs["cpf"], "pk": self.object.id})
@@ -654,18 +618,12 @@ class MudancaEstadoRequerimentoInicialDeleteView(LoginRequiredMixin, DeleteView)
         )
 
 
-class RequerimentoRecursoCienciaView(LoginRequiredMixin, UpdateView):
+class RequerimentoRecursoCienciaView(LoginRequiredMixin, SoftDeleteGetMixin, UpdateView):
     model = RequerimentoRecurso
     template_name = "form.html"
     form_class = RequerimentoRecursoCienciaForm
     title = "Ciência no Recurso"
     form_title_identificador = None
-
-    def get_object(self, queryset=None):
-        obj = super().get_object(queryset)
-        if obj.is_deleted:
-            raise Http404("Requerimento não encontrado")
-        return obj
 
     def get_success_url(self):
         return reverse_lazy("requerimento_recurso", kwargs={"cpf": self.kwargs["cpf"], "pk": self.object.id})
